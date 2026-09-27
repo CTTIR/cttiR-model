@@ -1,0 +1,8 @@
+# Tested CPU environment; no model/runtime dependencies.
+jsonschema==4.19.2
+attrs==25.4.0
+jsonschema-specifications==2023.12.1
+referencing==0.36.2
+rpds-py==0.27.1
+setuptools==78.1.1
+typing_extensions==4.15.0; python_version < "3.13"

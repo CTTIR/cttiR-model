@@ -1,0 +1,41 @@
+{
+  "record_id": "format-fixture-001",
+  "group_id": "format-fixture-family",
+  "task": "explain_api",
+  "language": "en",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Explain the row and column alignment checks needed before proposing a SingleCellExperiment conversion. If version-aligned evidence is missing, request it."
+    },
+    {
+      "role": "assistant",
+      "content": "{\"protocol_version\": 1, \"request_id\": \"example-001\", \"status\": \"needs_input\", \"summary\": \"Provide the pinned package revision and approved accessor documentation before a version-specific conversion can be proposed.\", \"r_code\": null, \"evidence_ids\": [], \"assumptions\": [], \"missing_inputs\": [\"Pinned package version\", \"Approved conversion/accessor evidence\"], \"limitations\": [\"No executable conversion has been verified.\"]}"
+    }
+  ],
+  "package_pins": [],
+  "evidence_ids": [],
+  "corpus_id": "fixture-corpus-not-production",
+  "expected_response": {
+    "protocol_version": 1,
+    "request_id": "example-001",
+    "status": "needs_input",
+    "summary": "Provide the pinned package revision and approved accessor documentation before a version-specific conversion can be proposed.",
+    "r_code": null,
+    "evidence_ids": [],
+    "assumptions": [],
+    "missing_inputs": [
+      "Pinned package version",
+      "Approved conversion/accessor evidence"
+    ],
+    "limitations": [
+      "No executable conversion has been verified."
+    ]
+  },
+  "validation_id": "fixture-needs-evidence",
+  "split": "unassigned",
+  "synthetic_data": true,
+  "review_status": "draft",
+  "rights_status": "pending",
+  "source_manifest_id": "format-example-not-training-data"
+}

@@ -1,0 +1,21 @@
+{
+  "protocol_version": 1,
+  "request_id": "example-001",
+  "task": "explain_api",
+  "language": "en",
+  "instruction": "Explain the row and column alignment checks needed before proposing a SingleCellExperiment conversion. If version-aligned evidence is missing, request it.",
+  "corpus_id": "fixture-corpus-not-production",
+  "package_pins": [],
+  "evidence_ids": [],
+  "input_contract": {
+    "columns": [],
+    "object_classes": [
+      "SingleCellExperiment"
+    ],
+    "experimental_unit": "donor"
+  },
+  "budget": {
+    "max_output_tokens": 512,
+    "timeout_seconds": 60
+  }
+}

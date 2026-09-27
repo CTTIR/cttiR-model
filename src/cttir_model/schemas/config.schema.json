@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CTTIR model project config v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]+$"
+        },
+        "artifact_root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "github_repo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hf_repo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "slug",
+        "artifact_root",
+        "github_repo",
+        "hf_repo"
+      ],
+      "additionalProperties": false
+    },
+    "models": {
+      "type": "object",
+      "properties": {
+        "supervisor": {
+          "type": "object",
+          "properties": {
+            "repo_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-f0-9]{40}$"
+            },
+            "endpoint": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "repo_id",
+            "revision",
+            "endpoint"
+          ],
+          "additionalProperties": false
+        },
+        "specialist": {
+          "type": "object",
+          "properties": {
+            "repo_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-f0-9]{40}$"
+            },
+            "endpoint": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "repo_id",
+            "revision",
+            "endpoint"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "supervisor",
+        "specialist"
+      ],
+      "additionalProperties": false
+    },
+    "corpus": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "snapshot_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "require_approved": {
+          "const": true
+        },
+        "retrieval": {
+          "enum": [
+            "lexical",
+            "local_hybrid"
+          ]
+        }
+      },
+      "required": [
+        "path",
+        "snapshot_id",
+        "require_approved",
+        "retrieval"
+      ],
+      "additionalProperties": false
+    },
+    "training": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "enum": [
+            "smoke",
+            "pilot",
+            "full"
+          ]
+        },
+        "method": {
+          "enum": [
+            "lora",
+            "qlora"
+          ]
+        },
+        "checkpoint_strategy": {
+          "enum": [
+            "unresolved",
+            "native_verified",
+            "converted_verified",
+            "official_trainable_verified"
+          ]
+        },
+        "effective_base_fingerprint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "max_steps": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "max_wall_minutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sequence_length": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 32768
+        },
+        "microbatch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "gradient_accumulation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "lora_rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "lora_alpha": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "lora_dropout": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.5
+        },
+        "learning_rate": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.01
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "target_modules": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "profile",
+        "method",
+        "checkpoint_strategy",
+        "effective_base_fingerprint",
+        "max_steps",
+        "max_wall_minutes",
+        "sequence_length",
+        "microbatch",
+        "gradient_accumulation",
+        "lora_rank",
+        "lora_alpha",
+        "lora_dropout",
+        "learning_rate",
+        "seed",
+        "target_modules"
+      ],
+      "additionalProperties": false
+    },
+    "serving": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "const": "127.0.0.1"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 65535
+        },
+        "allow_cloud_fallback": {
+          "const": false
+        },
+        "max_specialist_calls": {
+          "const": 2
+        }
+      },
+      "required": [
+        "host",
+        "port",
+        "allow_cloud_fallback",
+        "max_specialist_calls"
+      ],
+      "additionalProperties": false
+    },
+    "release": {
+      "type": "object",
+      "properties": {
+        "publish_enabled": {
+          "type": "boolean"
+        },
+        "visibility": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        },
+        "artifact_kind": {
+          "enum": [
+            "lora_adapter",
+            "merged",
+            "gguf"
+          ]
+        }
+      },
+      "required": [
+        "publish_enabled",
+        "visibility",
+        "artifact_kind"
+      ],
+      "additionalProperties": false
+    },
+    "execution": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "cpu_only",
+            "gpu_deferred"
+          ]
+        },
+        "allow_model_downloads": {
+          "const": false
+        },
+        "allow_training": {
+          "const": false
+        },
+        "max_workers": {
+          "const": 1
+        },
+        "max_input_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 16777216
+        }
+      },
+      "required": [
+        "mode",
+        "allow_model_downloads",
+        "allow_training",
+        "max_workers",
+        "max_input_bytes"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "project",
+    "models",
+    "corpus",
+    "training",
+    "serving",
+    "release",
+    "execution"
+  ],
+  "additionalProperties": false
+}

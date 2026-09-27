@@ -1,0 +1,8 @@
+{
+  "filename": "CTTIR_Mistral_Model_Training_Prompt_Stack_v1.zip",
+  "sha256": "b962b8e12b15aa29cd956f0bbbb4882267c67259043a5f2ecff5e92ab1f08e65",
+  "contract_changes": [
+    "config: required execution policy for CPU-only milestone"
+  ],
+  "instructions_location": "admin/cttir-model-v1 (local, ignored)"
+}

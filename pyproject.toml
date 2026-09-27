@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools==78.1.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cttir-model"
+version = "0.1.0"
+description = "Local contracts, corpus and provenance tooling for the CTTIR model project"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["jsonschema==4.19.2"]
+
+[project.scripts]
+cttir-model = "cttir_model.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cttir_model = ["schemas/*.json"]

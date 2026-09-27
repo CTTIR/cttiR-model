@@ -1,0 +1,16 @@
+{
+  "protocol_version": 1,
+  "request_id": "example-001",
+  "status": "needs_input",
+  "summary": "Provide the pinned package revision and approved accessor documentation before a version-specific conversion can be proposed.",
+  "r_code": null,
+  "evidence_ids": [],
+  "assumptions": [],
+  "missing_inputs": [
+    "Pinned package version",
+    "Approved conversion/accessor evidence"
+  ],
+  "limitations": [
+    "No executable conversion has been verified."
+  ]
+}

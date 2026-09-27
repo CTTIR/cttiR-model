@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "project": {
+    "slug": "cttir-model",
+    "artifact_root": "./artifacts",
+    "github_repo": "CTTIR/cttiR-model",
+    "hf_repo": null
+  },
+  "models": {
+    "supervisor": {
+      "repo_id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
+      "revision": null,
+      "endpoint": "http://127.0.0.1:8100/v1"
+    },
+    "specialist": {
+      "repo_id": "mistralai/Ministral-3-8B-Instruct-2512",
+      "revision": null,
+      "endpoint": "http://127.0.0.1:8101/v1"
+    }
+  },
+  "corpus": {
+    "path": null,
+    "snapshot_id": null,
+    "require_approved": true,
+    "retrieval": "lexical"
+  },
+  "training": {
+    "profile": "pilot",
+    "method": "qlora",
+    "checkpoint_strategy": "unresolved",
+    "effective_base_fingerprint": null,
+    "max_steps": 100,
+    "max_wall_minutes": 120,
+    "sequence_length": 2048,
+    "microbatch": 1,
+    "gradient_accumulation": 8,
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "learning_rate": 0.0001,
+    "seed": 1729,
+    "target_modules": []
+  },
+  "serving": {
+    "host": "127.0.0.1",
+    "port": 8088,
+    "allow_cloud_fallback": false,
+    "max_specialist_calls": 2
+  },
+  "release": {
+    "publish_enabled": false,
+    "visibility": "private",
+    "artifact_kind": "lora_adapter"
+  },
+  "execution": {
+    "mode": "cpu_only",
+    "allow_model_downloads": false,
+    "allow_training": false,
+    "max_workers": 1,
+    "max_input_bytes": 2097152
+  }
+}
