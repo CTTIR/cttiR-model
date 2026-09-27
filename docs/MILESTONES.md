@@ -21,6 +21,14 @@ are rejected. Training build outputs omit test/development records. See
 `CORPUS_AND_DATA.md` for commands and format boundaries. Production corpus
 approval, full native R extraction and scientific validation remain pending.
 
+## 3 — Local service and R client
+
+Implemented loopback HTTP health/specialist/consult/cancellation endpoints,
+one-operation admission, duplicate-ID handling, bounded schema repair, immutable
+validated proposal returns and explicit fixture mode. Added the R HTTP client
+and real local HTTP/R integration tests. No model is loaded or called.
+See `LOCAL_SERVICE.md`. Real model orchestration still requires later GPU gates.
+
 ## Deferred work
 
 Resolve exact model metadata and FP8 training compatibility; provision a tested

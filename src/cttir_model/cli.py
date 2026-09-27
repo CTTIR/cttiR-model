@@ -21,6 +21,8 @@ def parser() -> argparse.ArgumentParser:
         sub.add_argument("--config", required=True, type=Path)
         if name == "train":
             sub.add_argument("--profile", choices=("smoke", "pilot", "full"), required=True)
+        if name == "serve":
+            sub.add_argument("--fixture", action="store_true", help="Use deterministic synthetic endpoints, never a model")
         if name == "evaluate":
             sub.add_argument("--candidate", required=True)
         if name == "update":
@@ -74,6 +76,9 @@ def pending_gates() -> list[dict]:
 
 def dispatch(args: argparse.Namespace) -> dict:
     config = load_config(args.config)
+    if args.command == "serve":
+        from .serving import serve
+        return serve(config, args.fixture)
     if args.command == "preflight":
         report = inventory(config)
         atomic_json(config.artifacts / "preflight.json", report)

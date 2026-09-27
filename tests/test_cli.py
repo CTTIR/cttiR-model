@@ -71,7 +71,7 @@ class CLITests(unittest.TestCase):
             path = Path(directory) / "config.json"
             atomic_json(path, read_json(ROOT / "configs/cpu.json"))
             for command in [("train", "--profile", "pilot"), ("models", "resolve"),
-                            ("evaluate", "--candidate", "baseline"), ("serve",),
+                            ("evaluate", "--candidate", "baseline"),
                             ("release", "prepare", "--run", "absent")]:
                 result, report = self.run_cli(*command, "--config", str(path))
                 self.assertEqual(result.returncode, 3)
