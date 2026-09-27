@@ -1,0 +1,1762 @@
+{
+  "snapshot_schema_version": 1,
+  "inspected_on": "2026-09-27",
+  "repository": "https://github.com/CTTIR/cttiR",
+  "branch": "main",
+  "commit": "03ecc04bd86e3b6f03d3df2a5c42ab1265628f58",
+  "package": "cttiR",
+  "version": "0.0.2",
+  "license": "MIT + file LICENSE",
+  "r_requirement": ">= 4.1.0",
+  "upstream_sync": {
+    "fetch_all_prune": true,
+    "pull_ff_only": "already_up_to_date",
+    "working_tree_clean": true,
+    "remote_branches": [
+      "origin/main"
+    ]
+  },
+  "exports": [
+    {
+      "name": "audit",
+      "signature": "audit(path = NULL, scope = c(\"installation\", \"knowledge\", \"project\"), repair = FALSE, output = NULL, strict = FALSE, live = FALSE)"
+    },
+    {
+      "name": "doctor",
+      "signature": "doctor(path = NULL)"
+    },
+    {
+      "name": "project",
+      "signature": "project(name, type, goal, path = getwd(), config = NULL, options = list(), dry_run = FALSE)"
+    },
+    {
+      "name": "resources",
+      "signature": "resources(query = NULL, domain = NULL, repository = NULL, path = NULL, limit = 50L)"
+    },
+    {
+      "name": "sync",
+      "signature": "sync(path = \".\", config = NULL, options = list(), dry_run = TRUE)"
+    },
+    {
+      "name": "validate_config",
+      "signature": "validate_config(config)"
+    },
+    {
+      "name": "validate_spec",
+      "signature": "validate_spec(spec)"
+    }
+  ],
+  "capabilities": {
+    "offline_project_scaffold": true,
+    "provider_registration": false,
+    "model_inference": false,
+    "knowledge_export_api": false,
+    "workflow_adapter_execution": false,
+    "workflow_dependency_migration": false
+  },
+  "schema_contract": {
+    "dialect": "http://json-schema.org/draft-07/schema#",
+    "schema_version": 1,
+    "project_required_fields": [
+      "schema_version",
+      "project",
+      "research",
+      "publications",
+      "workflow",
+      "data_sources",
+      "packages",
+      "decisions",
+      "provenance"
+    ],
+    "project_types": [
+      "primary_research",
+      "secondary_research",
+      "methods",
+      "review",
+      "software",
+      "mixed",
+      "other"
+    ],
+    "languages": [
+      "en",
+      "de"
+    ],
+    "workflow_properties": {
+      "type": "object",
+      "properties": {
+        "pipeline": {
+          "type": "string",
+          "enum": [
+            "targets",
+            "none"
+          ]
+        },
+        "environment": {
+          "type": "string",
+          "enum": [
+            "renv",
+            "none"
+          ]
+        },
+        "git": {
+          "type": "boolean"
+        },
+        "prepare_environment": {
+          "type": "boolean"
+        },
+        "network": {
+          "type": "string",
+          "enum": [
+            "offline",
+            "allowed"
+          ]
+        },
+        "reporting": {
+          "type": "string",
+          "enum": [
+            "generic",
+            "quarto",
+            "rmarkdown",
+            "workflowr",
+            "reflowR"
+          ]
+        },
+        "readiness": {
+          "type": "string",
+          "enum": [
+            "scaffold_ready",
+            "environment_ready",
+            "demo_verified",
+            "data_ready",
+            "analysis_ready"
+          ]
+        },
+        "profile": {
+          "type": "string",
+          "enum": [
+            "cttir_specialist",
+            "hybrid",
+            "standard_reflowR"
+          ]
+        },
+        "project_backend": {
+          "type": "string",
+          "enum": [
+            "cttir",
+            "reflowR"
+          ]
+        },
+        "table_backend": {
+          "type": "string",
+          "enum": [
+            "DescrTab2",
+            "gtsummary",
+            "gt",
+            "none"
+          ]
+        }
+      },
+      "required": [
+        "pipeline",
+        "environment",
+        "git",
+        "prepare_environment",
+        "network",
+        "reporting",
+        "readiness",
+        "profile",
+        "project_backend",
+        "table_backend"
+      ],
+      "additionalProperties": false
+    },
+    "package_item": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "revision",
+        "source",
+        "evidence_ids",
+        "required"
+      ],
+      "additionalProperties": false
+    },
+    "analysis_properties": {
+      "type": "object",
+      "properties": {
+        "aim": {
+          "type": "string",
+          "enum": [
+            "descriptive",
+            "explanatory",
+            "predictive",
+            "causal",
+            "unknown"
+          ]
+        },
+        "outcome_family": {
+          "type": "string",
+          "enum": [
+            "continuous",
+            "binary",
+            "count",
+            "ordinal",
+            "time_to_event",
+            "other",
+            "unknown"
+          ]
+        },
+        "unit_structure": {
+          "type": "string",
+          "enum": [
+            "independent",
+            "paired",
+            "clustered",
+            "longitudinal",
+            "unknown"
+          ]
+        },
+        "engine": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "aim",
+        "outcome_family",
+        "unit_structure",
+        "engine",
+        "approved"
+      ],
+      "additionalProperties": false
+    },
+    "decision_item": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "config",
+            "inferred",
+            "default"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "field",
+        "origin",
+        "reason",
+        "evidence_ids"
+      ],
+      "additionalProperties": false
+    },
+    "provenance_properties": {
+      "type": "object",
+      "properties": {
+        "catalog_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "template_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prompt_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "planner_mode": {
+          "type": "string",
+          "enum": [
+            "deterministic",
+            "local_llm"
+          ]
+        },
+        "model_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "catalog_id",
+        "template_version",
+        "prompt_version",
+        "planner_mode",
+        "model_id",
+        "model_digest"
+      ],
+      "additionalProperties": false
+    },
+    "config_schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "cttir customization input v1",
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "project": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "slug": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "primary_research",
+                "secondary_research",
+                "methods",
+                "review",
+                "software",
+                "mixed",
+                "other"
+              ]
+            },
+            "goal": {
+              "type": "string",
+              "minLength": 1
+            },
+            "language": {
+              "type": "string",
+              "enum": [
+                "en",
+                "de"
+              ]
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "research": {
+          "type": "object",
+          "properties": {
+            "design": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "domain": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "data_types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "ethics_status": {
+              "type": "string",
+              "enum": [
+                "unknown",
+                "not_applicable",
+                "pending",
+                "approved"
+              ]
+            },
+            "analysis_role": {
+              "type": "string",
+              "enum": [
+                "primary_analysis",
+                "secondary_analysis",
+                "exploratory",
+                "unknown"
+              ]
+            },
+            "data_origin": {
+              "type": "string",
+              "enum": [
+                "new_collection",
+                "existing_dataset",
+                "literature",
+                "mixed",
+                "unknown"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "publications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1
+              },
+              "slug": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "research_class": {
+                "type": "string",
+                "enum": [
+                  "primary_research",
+                  "secondary_research",
+                  "methods",
+                  "software",
+                  "other",
+                  "unknown"
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "original_article",
+                  "systematic_review",
+                  "scoping_review",
+                  "meta_analysis",
+                  "methods",
+                  "protocol",
+                  "software",
+                  "narrative_review",
+                  "other"
+                ]
+              },
+              "analysis_role": {
+                "type": "string",
+                "enum": [
+                  "primary_analysis",
+                  "secondary_analysis",
+                  "exploratory",
+                  "unknown"
+                ]
+              },
+              "data_origin": {
+                "type": "string",
+                "enum": [
+                  "new_collection",
+                  "existing_dataset",
+                  "literature",
+                  "mixed",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "workflow": {
+          "type": "object",
+          "properties": {
+            "pipeline": {
+              "type": "string",
+              "enum": [
+                "targets",
+                "none"
+              ]
+            },
+            "environment": {
+              "type": "string",
+              "enum": [
+                "renv",
+                "none"
+              ]
+            },
+            "git": {
+              "type": "boolean"
+            },
+            "prepare_environment": {
+              "type": "boolean"
+            },
+            "network": {
+              "type": "string",
+              "enum": [
+                "offline",
+                "allowed"
+              ]
+            },
+            "reporting": {
+              "type": "string",
+              "enum": [
+                "generic",
+                "quarto",
+                "rmarkdown",
+                "workflowr",
+                "reflowR"
+              ]
+            },
+            "readiness": {
+              "type": "string",
+              "enum": [
+                "scaffold_ready",
+                "environment_ready",
+                "demo_verified",
+                "data_ready",
+                "analysis_ready"
+              ]
+            },
+            "profile": {
+              "type": "string",
+              "enum": [
+                "auto",
+                "cttir_specialist",
+                "hybrid",
+                "standard_reflowR"
+              ]
+            },
+            "project_backend": {
+              "type": "string",
+              "enum": [
+                "cttir",
+                "reflowR"
+              ]
+            },
+            "table_backend": {
+              "type": "string",
+              "enum": [
+                "DescrTab2",
+                "gtsummary",
+                "gt",
+                "none"
+              ]
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "data_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "logical_uri": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "format": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "access_class": {
+                "type": "string",
+                "enum": [
+                  "unknown",
+                  "public",
+                  "restricted"
+                ]
+              },
+              "checksum": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "checksum_status": {
+                "type": "string",
+                "enum": [
+                  "unknown",
+                  "recorded",
+                  "verified"
+                ]
+              },
+              "schema_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": {
+                "type": "boolean"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "knowledge": {
+          "type": "object",
+          "properties": {
+            "refresh": {
+              "type": "boolean"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "extensions": {
+          "type": "object"
+        },
+        "analysis": {
+          "type": "object",
+          "properties": {
+            "aim": {
+              "type": "string",
+              "enum": [
+                "descriptive",
+                "explanatory",
+                "predictive",
+                "causal",
+                "unknown"
+              ]
+            },
+            "outcome_family": {
+              "type": "string",
+              "enum": [
+                "continuous",
+                "binary",
+                "count",
+                "ordinal",
+                "time_to_event",
+                "other",
+                "unknown"
+              ]
+            },
+            "unit_structure": {
+              "type": "string",
+              "enum": [
+                "independent",
+                "paired",
+                "clustered",
+                "longitudinal",
+                "unknown"
+              ]
+            },
+            "engine": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "approved": {
+              "type": "boolean"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "figures": {
+          "title": "CTTIR figure policy",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "continuous_palette": {
+              "enum": [
+                "viridis",
+                "cividis"
+              ],
+              "default": "viridis"
+            },
+            "categorical_provider": {
+              "const": "RColorBrewer",
+              "default": "RColorBrewer"
+            },
+            "categorical_palette": {
+              "type": "string",
+              "default": "Dark2"
+            },
+            "diverging_palette": {
+              "type": "string",
+              "default": "BrBG"
+            },
+            "colourblind_friendly_only": {
+              "const": true,
+              "default": true
+            },
+            "redundant_encoding_required": {
+              "const": true,
+              "default": true
+            },
+            "panel_composer": {
+              "const": "patchwork",
+              "default": "patchwork"
+            },
+            "checks": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "protanopia",
+                  "deuteranopia",
+                  "tritanopia",
+                  "grayscale"
+                ]
+              },
+              "default": [
+                "protanopia",
+                "deuteranopia",
+                "tritanopia",
+                "grayscale"
+              ]
+            },
+            "named_colours": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$"
+              }
+            },
+            "na_colour": {
+              "type": "string",
+              "default": "#808080"
+            }
+          }
+        },
+        "ecosystem": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "seurat_for_relevant_gaps": {
+              "type": "boolean",
+              "default": true
+            },
+            "require_role_approval": {
+              "const": true,
+              "default": true
+            },
+            "modality": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "project_spec_schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "cttir resolved ProjectSpec core contract v1",
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "project": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "slug": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "primary_research",
+                "secondary_research",
+                "methods",
+                "review",
+                "software",
+                "mixed",
+                "other"
+              ]
+            },
+            "goal": {
+              "type": "string",
+              "minLength": 1
+            },
+            "language": {
+              "type": "string",
+              "enum": [
+                "en",
+                "de"
+              ]
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "slug",
+            "type",
+            "goal",
+            "language",
+            "created_at"
+          ],
+          "additionalProperties": false
+        },
+        "research": {
+          "type": "object",
+          "properties": {
+            "design": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "domain": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "data_types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "ethics_status": {
+              "type": "string",
+              "enum": [
+                "unknown",
+                "not_applicable",
+                "pending",
+                "approved"
+              ]
+            },
+            "analysis_role": {
+              "type": "string",
+              "enum": [
+                "primary_analysis",
+                "secondary_analysis",
+                "exploratory",
+                "unknown"
+              ]
+            },
+            "data_origin": {
+              "type": "string",
+              "enum": [
+                "new_collection",
+                "existing_dataset",
+                "literature",
+                "mixed",
+                "unknown"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "design",
+            "domain",
+            "data_types",
+            "ethics_status",
+            "analysis_role",
+            "data_origin",
+            "notes"
+          ],
+          "additionalProperties": false
+        },
+        "publications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1
+              },
+              "slug": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "research_class": {
+                "type": "string",
+                "enum": [
+                  "primary_research",
+                  "secondary_research",
+                  "methods",
+                  "software",
+                  "other",
+                  "unknown"
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "original_article",
+                  "systematic_review",
+                  "scoping_review",
+                  "meta_analysis",
+                  "methods",
+                  "protocol",
+                  "software",
+                  "narrative_review",
+                  "other"
+                ]
+              },
+              "analysis_role": {
+                "type": "string",
+                "enum": [
+                  "primary_analysis",
+                  "secondary_analysis",
+                  "exploratory",
+                  "unknown"
+                ]
+              },
+              "data_origin": {
+                "type": "string",
+                "enum": [
+                  "new_collection",
+                  "existing_dataset",
+                  "literature",
+                  "mixed",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "slug",
+              "research_class",
+              "type",
+              "analysis_role",
+              "data_origin"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "workflow": {
+          "type": "object",
+          "properties": {
+            "pipeline": {
+              "type": "string",
+              "enum": [
+                "targets",
+                "none"
+              ]
+            },
+            "environment": {
+              "type": "string",
+              "enum": [
+                "renv",
+                "none"
+              ]
+            },
+            "git": {
+              "type": "boolean"
+            },
+            "prepare_environment": {
+              "type": "boolean"
+            },
+            "network": {
+              "type": "string",
+              "enum": [
+                "offline",
+                "allowed"
+              ]
+            },
+            "reporting": {
+              "type": "string",
+              "enum": [
+                "generic",
+                "quarto",
+                "rmarkdown",
+                "workflowr",
+                "reflowR"
+              ]
+            },
+            "readiness": {
+              "type": "string",
+              "enum": [
+                "scaffold_ready",
+                "environment_ready",
+                "demo_verified",
+                "data_ready",
+                "analysis_ready"
+              ]
+            },
+            "profile": {
+              "type": "string",
+              "enum": [
+                "cttir_specialist",
+                "hybrid",
+                "standard_reflowR"
+              ]
+            },
+            "project_backend": {
+              "type": "string",
+              "enum": [
+                "cttir",
+                "reflowR"
+              ]
+            },
+            "table_backend": {
+              "type": "string",
+              "enum": [
+                "DescrTab2",
+                "gtsummary",
+                "gt",
+                "none"
+              ]
+            }
+          },
+          "required": [
+            "pipeline",
+            "environment",
+            "git",
+            "prepare_environment",
+            "network",
+            "reporting",
+            "readiness",
+            "profile",
+            "project_backend",
+            "table_backend"
+          ],
+          "additionalProperties": false
+        },
+        "data_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "logical_uri": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "format": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "access_class": {
+                "type": "string",
+                "enum": [
+                  "unknown",
+                  "public",
+                  "restricted"
+                ]
+              },
+              "checksum": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "checksum_status": {
+                "type": "string",
+                "enum": [
+                  "unknown",
+                  "recorded",
+                  "verified"
+                ]
+              },
+              "schema_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "logical_uri",
+              "format",
+              "access_class",
+              "checksum",
+              "checksum_status",
+              "schema_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "version",
+              "revision",
+              "source",
+              "evidence_ids",
+              "required"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "pattern": "^/"
+              },
+              "origin": {
+                "type": "string",
+                "enum": [
+                  "explicit",
+                  "config",
+                  "inferred",
+                  "default"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "required": [
+              "field",
+              "origin",
+              "reason",
+              "evidence_ids"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "properties": {
+            "catalog_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "template_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "prompt_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "planner_mode": {
+              "type": "string",
+              "enum": [
+                "deterministic",
+                "local_llm"
+              ]
+            },
+            "model_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "model_digest": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "catalog_id",
+            "template_version",
+            "prompt_version",
+            "planner_mode",
+            "model_id",
+            "model_digest"
+          ],
+          "additionalProperties": false
+        },
+        "extensions": {
+          "type": "object"
+        },
+        "analysis": {
+          "type": "object",
+          "properties": {
+            "aim": {
+              "type": "string",
+              "enum": [
+                "descriptive",
+                "explanatory",
+                "predictive",
+                "causal",
+                "unknown"
+              ]
+            },
+            "outcome_family": {
+              "type": "string",
+              "enum": [
+                "continuous",
+                "binary",
+                "count",
+                "ordinal",
+                "time_to_event",
+                "other",
+                "unknown"
+              ]
+            },
+            "unit_structure": {
+              "type": "string",
+              "enum": [
+                "independent",
+                "paired",
+                "clustered",
+                "longitudinal",
+                "unknown"
+              ]
+            },
+            "engine": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "approved": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "aim",
+            "outcome_family",
+            "unit_structure",
+            "engine",
+            "approved"
+          ],
+          "additionalProperties": false
+        },
+        "figures": {
+          "title": "CTTIR figure policy",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "continuous_palette": {
+              "enum": [
+                "viridis",
+                "cividis"
+              ],
+              "default": "viridis"
+            },
+            "categorical_provider": {
+              "const": "RColorBrewer",
+              "default": "RColorBrewer"
+            },
+            "categorical_palette": {
+              "type": "string",
+              "default": "Dark2"
+            },
+            "diverging_palette": {
+              "type": "string",
+              "default": "BrBG"
+            },
+            "colourblind_friendly_only": {
+              "const": true,
+              "default": true
+            },
+            "redundant_encoding_required": {
+              "const": true,
+              "default": true
+            },
+            "panel_composer": {
+              "const": "patchwork",
+              "default": "patchwork"
+            },
+            "checks": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "protanopia",
+                  "deuteranopia",
+                  "tritanopia",
+                  "grayscale"
+                ]
+              },
+              "default": [
+                "protanopia",
+                "deuteranopia",
+                "tritanopia",
+                "grayscale"
+              ]
+            },
+            "named_colours": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$"
+              }
+            },
+            "na_colour": {
+              "type": "string",
+              "default": "#808080"
+            }
+          }
+        },
+        "ecosystem": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "seurat_for_relevant_gaps": {
+              "type": "boolean",
+              "default": true
+            },
+            "require_role_approval": {
+              "const": true,
+              "default": true
+            },
+            "modality": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "project",
+        "research",
+        "publications",
+        "workflow",
+        "data_sources",
+        "packages",
+        "decisions",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "workflow": {
+                "properties": {
+                  "profile": {
+                    "const": "standard_reflowR"
+                  }
+                },
+                "required": [
+                  "profile"
+                ]
+              }
+            },
+            "required": [
+              "workflow"
+            ]
+          },
+          "then": {
+            "properties": {
+              "workflow": {
+                "properties": {
+                  "project_backend": {
+                    "const": "reflowR"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "resource_catalog_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "CTTIR resource catalog v1",
+      "type": "object",
+      "required": [
+        "manifest",
+        "packages",
+        "observations",
+        "dependencies",
+        "evidence",
+        "relationships",
+        "profiles",
+        "workflow_approvals",
+        "document_inventory",
+        "document_chunks",
+        "function_records",
+        "documentation_coverage"
+      ],
+      "properties": {
+        "manifest": {
+          "type": "object",
+          "properties": {
+            "schema_version": {
+              "const": 1
+            },
+            "package_count": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "schema_version",
+            "package_count"
+          ],
+          "additionalProperties": true
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package_id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "purpose": {
+                "type": "string"
+              },
+              "api_verification": {
+                "type": "string"
+              },
+              "adapter_status": {
+                "type": "string"
+              },
+              "default_install": {
+                "const": false
+              }
+            },
+            "required": [
+              "package_id",
+              "name",
+              "category",
+              "purpose",
+              "api_verification",
+              "adapter_status",
+              "default_install"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "observation_id": {
+                "type": "string"
+              },
+              "package_id": {
+                "type": "string"
+              },
+              "observed_version": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "source_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "observation_id",
+              "package_id",
+              "observed_version",
+              "source_url"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "dependencies": {
+          "type": "array"
+        },
+        "evidence": {
+          "type": "array"
+        },
+        "relationships": {
+          "type": "array"
+        },
+        "profiles": {
+          "type": "array"
+        },
+        "workflow_approvals": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "document_inventory": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "document_chunks": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "function_records": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "documentation_coverage": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "resource_manifest": {
+    "schema_version": 1,
+    "research_date": "2026-09-26",
+    "bioconductor_release_observed": "3.23",
+    "r_release_guidance": "4.6 (Bioconductor install page); resolve actual project compatibility at execution",
+    "package_count": 229,
+    "repository_counts": {
+      "Upstream": 9,
+      "CRAN": 121,
+      "Bioconductor": 97,
+      "Bioconductor-historical": 1,
+      "R-base": 1
+    },
+    "category_counts": {
+      "workflow": 20,
+      "tidy": 26,
+      "reporting": 20,
+      "clinical": 36,
+      "prediction": 19,
+      "bioc_containers": 19,
+      "bioc_tidy": 6,
+      "cytometry": 8,
+      "bulk_rna": 9,
+      "single_cell": 21,
+      "spatial": 6,
+      "multiomics": 4,
+      "pathways": 8,
+      "proteomics": 9,
+      "microbiome": 6,
+      "genomics": 12
+    },
+    "api_verified_count": 0,
+    "runtime_tested_adapter_count": 0,
+    "metadata_sources": "Official CRAN PACKAGES/DESCRIPTION; selected Bioconductor software/experiment indexes and pages; selected upstream DESCRIPTION/NAMESPACE",
+    "limitations": [
+      "Metadata verification is not API or runtime verification.",
+      "Interop fields are reviewed expectations, not whole-package certification.",
+      "Source snapshots are dated; update must recheck compatibility and lifecycle.",
+      "No R runtime/package installation was available for adapter tests."
+    ],
+    "documentation_coverage_queue_count": 229,
+    "stored_original_research_note_count": 13,
+    "stored_full_source_document_count": 0,
+    "workflow_approved_revision_count": 0,
+    "function_signature_record_count": 0,
+    "content_id": "sha256:122877f9677cfa5a42b3722301dc0c1d8a534847ca3746078d7db9ef165b5381"
+  },
+  "catalog_counts": {
+    "packages": 229,
+    "observations": 229,
+    "dependencies": 6630,
+    "evidence": 449,
+    "relationships": 33,
+    "profiles": 10,
+    "workflow_approvals": 0,
+    "document_inventory": 13,
+    "document_chunks": 13,
+    "function_records": 0,
+    "documentation_coverage": 229
+  },
+  "integration_constraints": [
+    "No provider or export_knowledge API exists in this revision.",
+    "Do not promote resource metadata or curated research notes to verified callable API evidence.",
+    "Require concrete package versions and revision/source mapping before model request conversion.",
+    "Never infer scientific approval, workflow readiness or runtime validation from a model proposal.",
+    "Retain deterministic offline scaffold behavior and report reflowR integration pending.",
+    "Do not modify parent project identity, resource pins or owned files from a proposal."
+  ],
+  "source_sha256": {
+    "DESCRIPTION": "cd02bce1aff5c3b5e28904f85089e9142021d3d7ac00a967bab8b437cbacd917",
+    "NAMESPACE": "928d1f016387694db640899079c68017c7d0b7afa9253243b51b50eb5f19e208",
+    "R/project.R": "5e8909c9644646f930912974fb194c20b94f9cdaa6caa726e4b23e02c57fdfe7",
+    "R/spec.R": "ccd96c814abbc9f0e3bcc568f8fd9065ca1c02a973cb80935cbc28d70f8699c1",
+    "R/config.R": "a65e6f5ffb96d00a6d59e058f4941d33693dd29dd856988bb784468c69a6384b",
+    "R/resources.R": "78c25edfb7d947db7bd9fd19fe440342ddd32549f22c083cd218bd2e0bd2fb0b",
+    "R/sync.R": "98ba8d5bea5349fdd3e3ba04d4e8a1646c55fe26a1306488c0a3afa9724b5043",
+    "R/audit.R": "988a3a2b4210d2555078e6d28b0e1fe3ac6318959fa71304b2b09503c8b48610",
+    "R/conditions.R": "8b5e24c3125862d9b650882eb6a683cbb5f57bb8fcd902242e9385458336694b",
+    "R/transactions.R": "b14bcb8c61f25e6ff74a4a7a0b3c8c22ae6e12e2a36172e9d564c62672a2e1f4",
+    "inst/schema/config.schema.json": "902a7ef04ebaf9a94da8516dce71c59e12cb5323fbb27b77c2f5064aa3818096",
+    "inst/schema/project-spec.schema.json": "9827c415967f32e2d7251d6ce5f4ec412458b756a17082a891bac9f27223d8dc",
+    "inst/schema/figure-policy.schema.json": "976ef8cde5f4a25e60ee6c96c3ad3d9ffba30dece1a4882ac1103d660681b6d0",
+    "inst/extdata/resource-catalog.schema.json": "595f8606ceca0cc735355f8e62b04c88215db88e719e325b09ef63932b52bc8f",
+    "inst/extdata/resource-manifest.json": "1e5441e3d5d9a9bdf0f24dff937d668fb3209dbd03536f77a7752b6c0ba817e6",
+    "inst/extdata/package-resources.json": "cd08c0bc4c4206966e89e6edc23dc207b6c5e000b92abf38683520d57e7a774c",
+    "inst/extdata/package-resources.sqlite": "5de268884db87bc04c5277dc7a2ce85aac16d0eade546805bef16e9a2d9de79a"
+  }
+}

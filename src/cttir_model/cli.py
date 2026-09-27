@@ -30,12 +30,14 @@ def parser() -> argparse.ArgumentParser:
             sub.add_argument("--dry-run", action="store_true")
     for name, actions in {"models": ("resolve",), "corpus": ("ingest", "search", "extract"),
                           "data": ("validate", "build", "review"), "release": ("prepare", "publish"),
-                          "r": ("parse", "fixtures", "isolation")}.items():
+                          "r": ("parse", "fixtures", "isolation"), "parent": ("preview", "bind")}.items():
         parent = commands.add_parser(name)
         children = parent.add_subparsers(dest="action", required=True)
         for action in actions:
             sub = children.add_parser(action)
             sub.add_argument("--config", required=True, type=Path)
+            if name == "parent":
+                sub.add_argument("--input", type=Path, required=True)
             if name == "r" and action == "parse":
                 sub.add_argument("--input", type=Path, required=True)
                 sub.add_argument("--catalog", type=Path)
@@ -88,6 +90,21 @@ def dispatch(args: argparse.Namespace) -> dict:
     if args.command == "serve":
         from .serving import serve
         return serve(config, args.fixture)
+    if args.command == "parent":
+        from .parent import bind_parent_request, fallback_plan
+        value = read_json(args.input, config.limit)
+        if args.action == "preview":
+            return fallback_plan(value)
+        required = {"spec", "request", "parent_commit", "resource_pin", "package_bindings"}
+        if not isinstance(value, dict) or set(value) != required:
+            raise ProjectError("parent_input", "Binding input needs spec, request, parent_commit, resource_pin and package_bindings.")
+        envelope = bind_parent_request(value["spec"], value["request"], Corpus.from_config(config),
+                                       parent_commit=value["parent_commit"], resource_pin=value["resource_pin"],
+                                       package_bindings=value["package_bindings"])
+        path = config.artifacts / "parent" / (fingerprint(envelope.as_dict()) + ".json")
+        atomic_json(path, envelope.as_dict())
+        return {"status": "bound", "envelope_id": envelope.envelope_id, "path": str(path),
+                "execution_authorized": False}
     if args.command == "preflight":
         report = inventory(config)
         atomic_json(config.artifacts / "preflight.json", report)

@@ -37,6 +37,15 @@ ingestion with native Rd parsing, provenance and candidate-only review queues.
 No arbitrary user R execution or automatic source approval is enabled.
 See `R_VALIDATION.md` for limits and explicit sandbox tests.
 
+## 5 — Parent package alignment
+
+Fetched/pulled the clean cttiR checkout and inspected version 0.0.2 at commit
+03ecc04. Its actual APIs and schemas are pinned in a public contract snapshot.
+The read-only parent adapter preserves scientific unknowns and approvals,
+requires exact source/package/resource pins, binds immutable context, and rejects
+stale responses. It does not invent an existing provider hook or approve a
+workflow. See `CTTIR_ALIGNMENT.md`; scaffold-only fallback remains explicit.
+
 ## Deferred work
 
 Resolve exact model metadata and FP8 training compatibility; provision a tested
