@@ -28,13 +28,21 @@ def parser() -> argparse.ArgumentParser:
         if name == "update":
             sub.add_argument("--target", choices=("corpus", "registry"), required=True)
             sub.add_argument("--dry-run", action="store_true")
-    for name, actions in {"models": ("resolve",), "corpus": ("ingest", "search"),
-                          "data": ("validate", "build"), "release": ("prepare", "publish")}.items():
+    for name, actions in {"models": ("resolve",), "corpus": ("ingest", "search", "extract"),
+                          "data": ("validate", "build", "review"), "release": ("prepare", "publish"),
+                          "r": ("parse", "fixtures", "isolation")}.items():
         parent = commands.add_parser(name)
         children = parent.add_subparsers(dest="action", required=True)
         for action in actions:
             sub = children.add_parser(action)
             sub.add_argument("--config", required=True, type=Path)
+            if name == "r" and action == "parse":
+                sub.add_argument("--input", type=Path, required=True)
+                sub.add_argument("--catalog", type=Path)
+            if name == "corpus" and action == "extract":
+                sub.add_argument("--source", type=Path, required=True)
+                sub.add_argument("--repository", required=True)
+                sub.add_argument("--max-topics", type=int, default=20)
             if name == "corpus" and action == "ingest":
                 sub.add_argument("--source", type=Path)
             if name == "corpus" and action == "search":
@@ -44,7 +52,8 @@ def parser() -> argparse.ArgumentParser:
                 sub.add_argument("--repository", required=True)
             if name == "data":
                 sub.add_argument("--input", type=Path, required=True)
-                sub.add_argument("--registry", type=Path, required=True)
+                if action != "review":
+                    sub.add_argument("--registry", type=Path, required=True)
             if name == "release" and action == "prepare":
                 sub.add_argument("--run", required=True)
             if name == "release" and action == "publish":
@@ -93,6 +102,13 @@ def dispatch(args: argparse.Namespace) -> dict:
         return {"status": "pending", "gates": pending_gates(), "trained_candidate": False,
                 "release_qualified": False, "mutations": False}
     if args.command == "corpus":
+        if args.action == "extract":
+            from .sources import extract_candidates
+            result = extract_candidates(args.source, args.repository, args.max_topics)
+            root = config.artifacts / "source-review" / result["source"]["archive_sha256"]
+            atomic_json(root / "candidates.json", result["corpus"])
+            atomic_json(root / "source.json", result["source"])
+            return {"status": "review_required", "path": str(root), "source": result["source"]}
         if args.action == "ingest":
             source = args.source
             if source is None and config.values["corpus"]["path"]:
@@ -107,6 +123,9 @@ def dispatch(args: argparse.Namespace) -> dict:
                 "fixture_only": corpus.fixture_only, "documents": documents}
     if args.command == "data":
         records = read_json(args.input, config.limit)
+        if args.action == "review":
+            from .review import review_queue
+            return review_queue(records)
         registry = read_json(args.registry, config.limit)
         corpus = Corpus.from_config(config)
         report = validate_dataset(records, corpus, registry)
@@ -118,6 +137,20 @@ def dispatch(args: argparse.Namespace) -> dict:
             atomic_json(path, payload)
             report = {**report, "output": str(path), "training_records": len(payload["train"])}
         return report
+    if args.command == "r":
+        from .r_validation import parse_r, run_worker
+        if args.action == "parse":
+            with args.input.open("rb") as stream:
+                raw = stream.read(60001)
+            if len(raw) > 60000:
+                raise ProjectError("r_input", "R source exceeds 60 KiB.")
+            report = parse_r(raw.decode("utf-8"), read_json(args.catalog) if args.catalog else None)
+            if not report["parsed"] or not report["static_subset_supported"] or report["api_errors"]:
+                raise ProjectError("r_rejected", "R source is syntactically invalid or outside the checked API subset.")
+            return report
+        output = run_worker("fixture" if args.action == "fixtures" else "isolation")
+        return {"status": "smoke_tested", "mode": args.action, "output": output,
+                "scientifically_reviewed": False}
     if args.command == "update" and args.dry_run:
         return {"status": "pending", "target": args.target, "mutations": False,
                 "reason": "Refresh adapters are not implemented; no source or model was changed."}

@@ -17,4 +17,4 @@ cttir-model = "cttir_model.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-cttir_model = ["schemas/*.json"]
+cttir_model = ["schemas/*.json", "*.R"]

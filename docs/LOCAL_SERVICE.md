@@ -45,7 +45,9 @@ disabled. Errors inherit `cttir_model_error` and a code-specific class.
 
 Parent integration should use an explicit provider extension: call health,
 send the existing workflow's task through this client, and retain the parent's
-deterministic `standard_reflowR` fallback on unavailable/unsupported results.
+`standard_reflowR` scaffold on unavailable/unsupported results. The current
+parent does not yet implement the reflowR execution integration or a provider
+hook; this client is a proposed extension, not a drop-in existing provider.
 Do not execute returned code or silently alter the parent's three-input API.
 This repository does not modify the parent R package.
 

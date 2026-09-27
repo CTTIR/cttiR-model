@@ -29,6 +29,14 @@ validated proposal returns and explicit fixture mode. Added the R HTTP client
 and real local HTTP/R integration tests. No model is loaded or called.
 See `LOCAL_SERVICE.md`. Real model orchestration still requires later GPU gates.
 
+## 4 — Isolated R checks and candidate source review
+
+Added real parse-only AST inspection, fixed synthetic R fixtures and isolation
+checks in resource-limited bubblewrap workers. Added safe small R-source archive
+ingestion with native Rd parsing, provenance and candidate-only review queues.
+No arbitrary user R execution or automatic source approval is enabled.
+See `R_VALIDATION.md` for limits and explicit sandbox tests.
+
 ## Deferred work
 
 Resolve exact model metadata and FP8 training compatibility; provision a tested
