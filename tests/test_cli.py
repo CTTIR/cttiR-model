@@ -70,9 +70,9 @@ class CLITests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "config.json"
             atomic_json(path, read_json(ROOT / "configs/cpu.json"))
-            for command in [("train", "--profile", "pilot"), ("models", "resolve"),
+            for command in [("train", "--profile", "pilot"),
                             ("evaluate", "--candidate", "baseline"),
-                            ("release", "prepare", "--run", "absent")]:
+                            ("release", "publish", "--manifest", "absent", "--visibility", "private")]:
                 result, report = self.run_cli(*command, "--config", str(path))
                 self.assertEqual(result.returncode, 3)
                 self.assertEqual(report["status"], "deferred")

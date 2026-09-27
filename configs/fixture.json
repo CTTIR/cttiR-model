@@ -16,12 +16,12 @@
     "specialist": {
       "endpoint": "http://127.0.0.1:8101/v1",
       "repo_id": "mistralai/Ministral-3-8B-Instruct-2512",
-      "revision": null
+      "revision": "5b26027e7b19eeb4b7352e1fed3926375dd2cb4d"
     },
     "supervisor": {
       "endpoint": "http://127.0.0.1:8100/v1",
       "repo_id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
-      "revision": null
+      "revision": "55c5b41e98c2dbd21b0c8afffc540dcfc9eb5128"
     }
   },
   "project": {
@@ -58,5 +58,10 @@
     "seed": 1729,
     "sequence_length": 2048,
     "target_modules": []
+  },
+  "knowledge": {
+    "book_library": "ressources",
+    "training_policy": "reviewed_book_grounded_examples",
+    "redistribution_allowed": false
   }
 }

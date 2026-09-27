@@ -28,15 +28,21 @@ evidence under `artifacts/`. It runs no workload benchmark. `audit` is read-only
 and reports pending project gates. Schema shape validation is not scientific,
 training or release approval.
 
-Local corpus ingestion/search and reviewed dataset validation/build are now
-available; see [evidence and dataset usage](docs/CORPUS_AND_DATA.md). They use
-bounded local JSON snapshots and require no model runtime or network access.
+Available laptop tooling:
 
-The CLI also reserves the remaining lifecycle command names from the supplied
-specification. Unimplemented operations return JSON with `status: deferred`
+- [Local broker and R client](docs/LOCAL_SERVICE.md), with explicit fixture mode.
+- [Isolated R parsing and small source imports](docs/R_VALIDATION.md).
+- [Evidence and dataset review](docs/CORPUS_AND_DATA.md), without automatic approval.
+- [Pinned cttiR package alignment](docs/CTTIR_ALIGNMENT.md).
+- [Local book knowledge and training preparation](docs/BOOK_KNOWLEDGE.md).
+- [Metadata, saved-output evaluation, release integrity and rollback](docs/OFFLINE_LIFECYCLE.md).
+
+Training, model inference and publication remain deferred. Unimplemented
+operations return JSON with `status: deferred`
 and exit code 3; invalid inputs return exit code 2. They never pretend that a
-training or inference run succeeded. `update --dry-run` describes the pending
-refresh work without making changes.
+training or inference run succeeded. `update --dry-run` validates/stages no
+persistent changes. Metadata resolution is an explicit small network operation;
+offline tests and user requests do not fetch model files.
 
 See [milestones](docs/MILESTONES.md) for current scope and next steps. The
 original ZIP and extracted instructions stay in ignored `admin/`; schemas and

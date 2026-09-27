@@ -322,6 +322,27 @@
         "max_input_bytes"
       ],
       "additionalProperties": false
+    },
+    "knowledge": {
+      "type": "object",
+      "properties": {
+        "book_library": {
+          "type": "string",
+          "minLength": 1
+        },
+        "training_policy": {
+          "const": "reviewed_book_grounded_examples"
+        },
+        "redistribution_allowed": {
+          "const": false
+        }
+      },
+      "required": [
+        "book_library",
+        "training_policy",
+        "redistribution_allowed"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

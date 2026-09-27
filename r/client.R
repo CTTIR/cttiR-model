@@ -34,8 +34,9 @@ cttir_model_http <- function(path, endpoint, timeout, body = NULL, method = "GET
   })
   value <- tryCatch(jsonlite::fromJSON(rawToChar(buffer), simplifyVector = FALSE),
                     error = function(e) cttir_model_error("protocol", "Service returned invalid JSON."))
+  if (!is.list(value) || is.null(names(value))) cttir_model_error("protocol", "Service JSON must be an object.")
   if (response$status_code != 200L) {
-    code <- value$error$code
+    code <- if (is.list(value$error)) value$error$code else NULL
     if (!is.character(code) || length(code) != 1L || !grepl("^[a-z_]+$", code)) code <- "http"
     cttir_model_error(code, paste("Local service rejected the request (HTTP", response$status_code, ")."))
   }
@@ -69,11 +70,25 @@ cttir_model_consult <- function(task, context, endpoint = "http://127.0.0.1:8088
             list(budget = list(max_output_tokens = 512L, timeout_seconds = as.integer(timeout))))
   value <- cttir_model_http("/v1/consult", endpoint, timeout, body, "POST")
   proposal <- value$proposal
+  proposal_fields <- c("protocol_version", "request_id", "status", "summary", "r_code", "evidence_ids",
+                        "assumptions", "missing_inputs", "limitations")
   if (!is.list(proposal) || !identical(proposal$protocol_version, 1L) ||
       !identical(proposal$request_id, context$request_id) ||
+      !setequal(names(proposal), proposal_fields) || !is.character(proposal$status) || length(proposal$status) != 1L ||
       !proposal$status %in% c("proposed", "needs_input", "unsupported", "failed") ||
-      !is.null(proposal$r_code) || !isFALSE(value$verification$r_execution_authorized)) {
+      !is.character(proposal$summary) || length(proposal$summary) != 1L || !nzchar(proposal$summary) ||
+      !is.null(proposal$r_code) || !is.list(value$verification) ||
+      !isFALSE(value$verification$r_execution_authorized) || !identical(value$corpus_id, context$corpus_id)) {
     cttir_model_error("protocol", "Unvalidated or incompatible service response.")
+  }
+  for (name in c("evidence_ids", "assumptions", "missing_inputs", "limitations")) {
+    items <- proposal[[name]]
+    if (!is.list(items) || !all(vapply(items, function(x) is.character(x) && length(x) == 1L && nzchar(x), logical(1)))) {
+      cttir_model_error("protocol", "Proposal array fields are invalid.")
+    }
+  }
+  if (!all(unlist(proposal$evidence_ids) %in% unlist(context$evidence_ids))) {
+    cttir_model_error("protocol", "Response cited evidence outside the request.")
   }
   value
 }

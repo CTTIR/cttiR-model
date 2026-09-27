@@ -51,6 +51,13 @@ def run_worker(mode: str, content: str = "") -> str:
 
 
 def parse_r(code: str, api_catalog: dict | None = None) -> dict:
+    if api_catalog is not None:
+        if not isinstance(api_catalog, dict) or any(
+                not isinstance(item, dict) or set(item) != {"approved", "version", "arguments"}
+                or type(item["approved"]) is not bool or not isinstance(item["version"], str)
+                or not isinstance(item["arguments"], list) or any(not isinstance(arg, str) for arg in item["arguments"])
+                for item in api_catalog.values()):
+            raise ProjectError("api_catalog", "Expected an explicit versioned API review catalog.")
     output = run_worker("parse", code)
     calls, status = [], None
     for line in output.splitlines():

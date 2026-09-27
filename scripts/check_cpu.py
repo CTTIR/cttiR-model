@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+import os
 from pathlib import Path
 
 from cttir_model.cli import pending_gates
@@ -17,7 +18,8 @@ print(result.stderr, end="")
 report = inventory(config)
 atomic_json(config.artifacts / "preflight.json", report)
 entry = {
-    "timestamp": now(), "phase": "cpu_tests", "command": "python -m unittest discover -s tests -v",
+    "timestamp": now(), "phase": "cpu_tests", "command":
+    ("CTTIR_TEST_SANDBOX=1 " if os.environ.get("CTTIR_TEST_SANDBOX") == "1" else "") + "python -m unittest discover -s tests -v",
     "exit_status": result.returncode, "state": "smoke_tested" if result.returncode == 0 else "failed",
     "input_sha256": fingerprint({str(p.relative_to(root)): p.read_text()
                                  for folder in ("src", "tests", "configs")

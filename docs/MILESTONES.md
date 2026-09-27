@@ -46,13 +46,33 @@ requires exact source/package/resource pins, binds immutable context, and reject
 stale responses. It does not invent an existing provider hook or approve a
 workflow. See `CTTIR_ALIGNMENT.md`; scaffold-only fallback remains explicit.
 
+## 6 — Offline lifecycle tooling
+
+Resolved actual immutable model revisions with small metadata downloads only.
+Implemented CPU loss-mask/resume checks, frozen benchmark and saved-output
+evaluation with grouped comparisons, read-only integrity audit, safe staged
+updates, local release validation/preparation and atomic pointer rollback.
+These tools require genuine reviewed artifacts before release and cannot
+substitute for training or loaded-model tests. See `OFFLINE_LIFECYCLE.md`.
+
+## 7 — Local book knowledge
+
+Copied and hash-verified the three supplied PDFs into gitignored `ressources/`.
+Indexed their 943 available pages into 1,180 local page-cited text chunks using
+bounded serial extraction; added local search and a provenance-bound training
+preparation plan. The Moscarelli file contains only 13 front-matter/contents
+pages, so its substantive chapters remain unavailable. Actual model training
+and approval of derived training examples are still deferred.
+
 ## Deferred work
 
-Resolve exact model metadata and FP8 training compatibility; provision a tested
-GPU environment; obtain approved versioned R documentation and independently
-reviewed examples; freeze benchmarks; implement and execute genuine baseline,
-adapter training and save/reload; implement model broker, sandboxed R validators,
-R client, serving rollback and release reconstruction.
+Verify FP8 training compatibility and an effective base; provision a tested
+GPU environment; obtain approved production R documentation and independently
+reviewed examples; freeze a real benchmark; implement and execute genuine
+baseline, adapter training and save/reload; connect real model endpoints and
+consumer reconstruction. Extend R metadata/execution adapters only with reviewed
+package-specific support. cttiR itself needs a separately implemented provider
+extension before this client can integrate into its public workflow.
 
 Do not run these workloads on this laptop. Training and download switches are
 schema constants set to false, so a profile edit cannot accidentally start them.
