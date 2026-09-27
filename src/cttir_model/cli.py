@@ -6,9 +6,11 @@ import sys
 from pathlib import Path
 
 from .config import load_config
+from .corpus import Corpus, ingest
+from .datasets import training_subset, validate_dataset
 from .errors import ProjectError
 from .preflight import inventory
-from .provenance import atomic_json, fingerprint, now
+from .provenance import atomic_json, fingerprint, now, read_json, record_phase
 
 
 def parser() -> argparse.ArgumentParser:
@@ -79,12 +81,38 @@ def dispatch(args: argparse.Namespace) -> dict:
                  "input_sha256": fingerprint(config.values), "output_sha256": fingerprint(report),
                  "outputs": ["preflight.json"], "next_action": "Run CPU contract tests; keep GPU work deferred."}
         # Append-only individual entries avoid rewriting previous phase evidence.
-        atomic_json(config.artifacts / "implementation" / (fingerprint(entry) + ".json"), entry)
+        record_phase(config.artifacts, entry)
         return {"status": "implemented", "report": str(config.artifacts / "preflight.json"),
                 "training_ready": False, "execution_mode": config.values["execution"]["mode"]}
     if args.command == "audit":
         return {"status": "pending", "gates": pending_gates(), "trained_candidate": False,
                 "release_qualified": False, "mutations": False}
+    if args.command == "corpus":
+        if args.action == "ingest":
+            source = args.source
+            if source is None and config.values["corpus"]["path"]:
+                source = config.path(config.values["corpus"]["path"])
+            if source is None:
+                raise ProjectError("missing_source", "Supply --source or configure corpus.path.")
+            return ingest(config, source)
+        corpus = Corpus.from_config(config)
+        documents = corpus.search(args.query, {"name": args.package, "version": args.version,
+                                               "repository": args.repository})
+        return {"status": "retrieved", "corpus_id": corpus.snapshot_id,
+                "fixture_only": corpus.fixture_only, "documents": documents}
+    if args.command == "data":
+        records = read_json(args.input, config.limit)
+        registry = read_json(args.registry, config.limit)
+        corpus = Corpus.from_config(config)
+        report = validate_dataset(records, corpus, registry)
+        if args.action == "build":
+            payload = {"manifest": report, "train": training_subset(records)}
+            if not payload["train"]:
+                raise ProjectError("empty_training", "The reviewed dataset has no training split.")
+            path = config.artifacts / "datasets" / (fingerprint(payload) + ".json")
+            atomic_json(path, payload)
+            report = {**report, "output": str(path), "training_records": len(payload["train"])}
+        return report
     if args.command == "update" and args.dry_run:
         return {"status": "pending", "target": args.target, "mutations": False,
                 "reason": "Refresh adapters are not implemented; no source or model was changed."}

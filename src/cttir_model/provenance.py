@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 import os
 import tempfile
 from datetime import datetime, timezone
@@ -37,8 +38,13 @@ def decode_json(raw: bytes) -> Any:
     try:
         def invalid_constant(value: str) -> None:
             raise ValueError("Non-finite number")
+        def finite_float(value: str) -> float:
+            number = float(value)
+            if not math.isfinite(number):
+                raise ValueError("Non-finite number")
+            return number
         return json.loads(raw, object_pairs_hook=_unique_pairs,
-                          parse_constant=invalid_constant)
+                          parse_constant=invalid_constant, parse_float=finite_float)
     except (ValueError, UnicodeError, RecursionError) as exc:
         raise ProjectError("invalid_json", "Expected valid UTF-8 JSON.") from exc
 
@@ -74,3 +80,22 @@ def atomic_json(path: Path, value: Any) -> None:
     finally:
         if name and os.path.exists(name):
             os.unlink(name)
+
+
+def record_phase(root: Path, entry: dict) -> None:
+    """Single-writer ledger; individual entries remain immutable after interruption."""
+    directory = root / "implementation"
+    digest = fingerprint(entry)
+    atomic_json(directory / (digest + ".json"), entry)
+    # Reconstruct the index from entries, including any written before a crash.
+    entries = []
+    for path in sorted(directory.glob("*.json")):
+        if path.name == "ledger.json":
+            continue
+        if len(path.stem) != 64:
+            continue
+        item = read_json(path)
+        if fingerprint(item) != path.stem:
+            raise ProjectError("ledger_corrupt", "Historical phase evidence does not match its hash.")
+        entries.append({"sha256": path.stem, **item})
+    atomic_json(directory / "ledger.json", {"schema_version": 1, "entries": entries})

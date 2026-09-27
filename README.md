@@ -19,12 +19,20 @@ python3 -m venv .venv
 .venv/bin/cttir-model audit --config configs/cpu.json
 ```
 
+Run `.venv/bin/python scripts/check_cpu.py` to retain local test evidence,
+preflight, a resumable implementation ledger and the full gate matrix under
+ignored `artifacts/`. The test suite runs serially and requires no network.
+
 `preflight` only reads lightweight system metadata and writes ignored local
 evidence under `artifacts/`. It runs no workload benchmark. `audit` is read-only
 and reports pending project gates. Schema shape validation is not scientific,
 training or release approval.
 
-The initial CLI reserves the full lifecycle command names from the supplied
+Local corpus ingestion/search and reviewed dataset validation/build are now
+available; see [evidence and dataset usage](docs/CORPUS_AND_DATA.md). They use
+bounded local JSON snapshots and require no model runtime or network access.
+
+The CLI also reserves the remaining lifecycle command names from the supplied
 specification. Unimplemented operations return JSON with `status: deferred`
 and exit code 3; invalid inputs return exit code 2. They never pretend that a
 training or inference run succeeded. `update --dry-run` describes the pending

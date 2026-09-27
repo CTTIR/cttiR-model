@@ -1,0 +1,62 @@
+{
+  "corpus": {
+    "path": "data/fixtures/corpus.json",
+    "require_approved": true,
+    "retrieval": "lexical",
+    "snapshot_id": "sha256:dc535ed6deddffc5b6f5b674777e6d7802e0737223f07639344d82f4460264f9"
+  },
+  "execution": {
+    "allow_model_downloads": false,
+    "allow_training": false,
+    "max_input_bytes": 2097152,
+    "max_workers": 1,
+    "mode": "cpu_only"
+  },
+  "models": {
+    "specialist": {
+      "endpoint": "http://127.0.0.1:8101/v1",
+      "repo_id": "mistralai/Ministral-3-8B-Instruct-2512",
+      "revision": null
+    },
+    "supervisor": {
+      "endpoint": "http://127.0.0.1:8100/v1",
+      "repo_id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
+      "revision": null
+    }
+  },
+  "project": {
+    "artifact_root": "./artifacts",
+    "github_repo": "CTTIR/cttiR-model",
+    "hf_repo": null,
+    "slug": "cttir-model"
+  },
+  "release": {
+    "artifact_kind": "lora_adapter",
+    "publish_enabled": false,
+    "visibility": "private"
+  },
+  "schema_version": 1,
+  "serving": {
+    "allow_cloud_fallback": false,
+    "host": "127.0.0.1",
+    "max_specialist_calls": 2,
+    "port": 8088
+  },
+  "training": {
+    "checkpoint_strategy": "unresolved",
+    "effective_base_fingerprint": null,
+    "gradient_accumulation": 8,
+    "learning_rate": 0.0001,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "lora_rank": 16,
+    "max_steps": 100,
+    "max_wall_minutes": 120,
+    "method": "qlora",
+    "microbatch": 1,
+    "profile": "pilot",
+    "seed": 1729,
+    "sequence_length": 2048,
+    "target_modules": []
+  }
+}

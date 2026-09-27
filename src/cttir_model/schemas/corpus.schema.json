@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Normalized corpus export v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "fixture_only": {
+      "type": "boolean"
+    },
+    "documents": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "package": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "repository": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "name",
+              "version",
+              "repository"
+            ],
+            "additionalProperties": false
+          },
+          "symbol": {
+            "type": "string",
+            "minLength": 1
+          },
+          "signature": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "reference",
+              "vignette",
+              "readme",
+              "news"
+            ]
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100000
+          },
+          "content_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "source_locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_revision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "license": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rights_status": {
+            "enum": [
+              "approved",
+              "pending",
+              "restricted",
+              "rejected"
+            ]
+          },
+          "review_status": {
+            "enum": [
+              "approved",
+              "candidate",
+              "rejected"
+            ]
+          }
+        },
+        "required": [
+          "evidence_id",
+          "package",
+          "symbol",
+          "signature",
+          "kind",
+          "content",
+          "content_sha256",
+          "source_locator",
+          "source_revision",
+          "license",
+          "rights_status",
+          "review_status"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "fixture_only",
+    "documents"
+  ],
+  "additionalProperties": false
+}

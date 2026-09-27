@@ -8,7 +8,7 @@ from unittest.mock import patch
 from cttir_model.cli import main
 from cttir_model.config import load_config, validate
 from cttir_model.errors import ProjectError
-from cttir_model.provenance import atomic_json, decode_json, fingerprint, read_json
+from cttir_model.provenance import atomic_json, decode_json, fingerprint, read_json, record_phase
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -60,7 +60,7 @@ class FoundationTests(unittest.TestCase):
                 validate({**request, **extra}, "request")
 
     def test_json_is_strict_and_bounded(self):
-        for raw in [b'{"x":1,"x":2}', b'{"x":NaN}', b'\xff']:
+        for raw in [b'{"x":1,"x":2}', b'{"x":NaN}', b'{"x":1e999}', b'\xff']:
             with self.assertRaises(ProjectError):
                 decode_json(raw)
         with tempfile.TemporaryDirectory() as directory:
@@ -81,6 +81,14 @@ class FoundationTests(unittest.TestCase):
 
     def test_hash_ignores_object_key_order(self):
         self.assertEqual(fingerprint({"a": 1, "b": 2}), fingerprint({"b": 2, "a": 1}))
+
+    def test_ledger_keeps_previous_phase_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            record_phase(root, {"phase": "one", "exit_status": 0})
+            record_phase(root, {"phase": "two", "exit_status": 3})
+            ledger = read_json(root / "implementation/ledger.json")
+            self.assertEqual({item["phase"] for item in ledger["entries"]}, {"one", "two"})
 
     def test_training_defers_without_inventory_or_network(self):
         with patch("builtins.print"), patch("cttir_model.cli.inventory", side_effect=AssertionError):

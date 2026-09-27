@@ -1,0 +1,42 @@
+{
+  "documents": [
+    {
+      "content": "Preserve sample identifiers when aligning rows.",
+      "content_sha256": "ef39a0fcc6b6b0ca036c17477bf4bd19d4ae4eca3997bc01588a1b99f40ebdbf",
+      "evidence_id": "evidence-v1",
+      "kind": "reference",
+      "license": "MIT",
+      "package": {
+        "name": "fixtureR",
+        "repository": "synthetic",
+        "version": "1.0"
+      },
+      "review_status": "approved",
+      "rights_status": "approved",
+      "signature": "align(x, ids)",
+      "source_locator": "synthetic://fixtureR/align",
+      "source_revision": "fixture-v1",
+      "symbol": "align"
+    },
+    {
+      "content": "Version two requires sample_ids.",
+      "content_sha256": "643b80b8a8f5795efcf93ceaea60cb88df8a8e714e2f193b96410aa993b6306e",
+      "evidence_id": "evidence-v2",
+      "kind": "reference",
+      "license": "MIT",
+      "package": {
+        "name": "fixtureR",
+        "repository": "synthetic",
+        "version": "2.0"
+      },
+      "review_status": "approved",
+      "rights_status": "approved",
+      "signature": "align(x, ids)",
+      "source_locator": "synthetic://fixtureR/align",
+      "source_revision": "fixture-v1",
+      "symbol": "align"
+    }
+  ],
+  "fixture_only": true,
+  "schema_version": 1
+}
