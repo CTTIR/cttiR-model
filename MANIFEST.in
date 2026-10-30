@@ -1,0 +1,13 @@
+include .python-version requirements-cpu.lock LICENSE THIRD_PARTY_NOTICES.md
+include README.md FINAL_AUDIT.md MAINTENANCE.md
+recursive-include configs *.json
+recursive-include data/fixtures *.json
+recursive-include data/manifests *.json
+recursive-include docs *.md *.json
+recursive-include r *.R *.lock
+recursive-include scripts *.py
+recursive-include tests *.py *.R
+prune admin
+prune ressources
+prune artifacts
+global-exclude __pycache__ *.py[cod]

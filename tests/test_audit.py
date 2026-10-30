@@ -31,7 +31,10 @@ class AuditTests(unittest.TestCase):
             config = Config(value, root)
             record_phase(config.artifacts, {'phase': 'test', 'exit_status': 0})
             initial = audit(config, pending_gates())
-            self.assertTrue(all(row['status'] == 'pass' for row in initial['checks']))
+            self.assertTrue(all(row['status'] == 'pass' for row in initial['checks']
+                                if row['check'] != 'cpu_test_evidence'))
+            self.assertEqual(next(row for row in initial['checks']
+                                  if row['check'] == 'cpu_test_evidence')['status'], 'pending')
             atomic_json(root/'corpus.json', {**doc, 'fixture_only': False})
             path = next(p for p in (config.artifacts/'implementation').glob('*.json') if len(p.stem) == 64)
             atomic_json(path, {'phase': 'tampered'})

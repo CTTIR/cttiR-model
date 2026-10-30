@@ -4,6 +4,12 @@ The configured `knowledge.book_library` is `ressources/`, which is gitignored.
 Its manifest, PDFs, extracted text chunks and training preparation plan remain
 local. Source copies were verified by SHA-256 against the supplied files.
 
+The inventory and extraction results below describe the earlier private Linux
+workstation run. These files are not distributed with this public repository
+and were not accessed in the 2026-10-30 public audit. On macOS, extraction is
+unavailable because the required `prlimit` boundary is absent; there is no
+unbounded fallback.
+
 | Supplied PDF | Available PDF pages | Indexed text chunks |
 |---|---:|---:|
 | An Introduction to Statistical Learning with Applications in R, second edition | 616 | 822 |
@@ -43,6 +49,9 @@ record's source-review manifest, validate R APIs against exact approved package
 versions, and keep book/chapter/template families separated before test sealing.
 This plan creates no examples automatically and reports `training_ready: false`.
 Actual model training remains deferred on this laptop.
+Plan generation revalidates each source PDF and index before replacing any
+previous plan. Sources with `training_requested_by_user: false` remain
+`not_requested`; indexing never creates that authorization.
 
 Book-derived prompts/datasets stay local by default; the source registry keeps
 rights review and redistribution separate from the user's requested use. Neither

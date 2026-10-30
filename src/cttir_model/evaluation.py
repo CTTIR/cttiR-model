@@ -1,7 +1,7 @@
 """Offline scoring of saved outputs; never invokes models or invents reviews."""
 
-import math
 import random
+import re
 from collections import defaultdict
 
 from .config import validate
@@ -15,6 +15,11 @@ SCORING_POLICY = {"version": 1, "raw_schema_min": 0.95, "api_correct_min": 0.9,
                   "supported_success_min": 0.8, "critical_violations_max": 0,
                   "primary_metric": "mean_group_supported_success", "minimum_gain": 0.05,
                   "bootstrap_resamples": 200, "bootstrap_seed": 1729}
+
+
+def finite_nonnegative(value):
+    # JSON integers can exceed the range accepted by math.isfinite/float.
+    return type(value) in (int, float) and 0 <= value <= 1e300
 
 
 def freeze_benchmark(value: dict, corpus: Corpus) -> dict:
@@ -52,9 +57,10 @@ def score_outputs(frozen: dict, run: dict, corpus: Corpus) -> dict:
     if not isinstance(run, dict) or set(run) != required:
         raise ProjectError("evaluation_run", "Expected saved-output run manifest with exact identity fields.")
     if (run["benchmark_sha256"] != frozen["benchmark_sha256"] or run["corpus_id"] != corpus.snapshot_id
-            or run["arm"] not in {"A", "B", "C", "D"} or type(run["fixture_only"]) is not bool):
+            or not isinstance(run["run_id"], str) or not run["run_id"].strip()
+            or not isinstance(run["arm"], str) or run["arm"] not in {"A", "B", "C", "D"}
+            or type(run["fixture_only"]) is not bool):
         raise ProjectError("evaluation_pin", "Evaluation benchmark, corpus or comparison arm is invalid.")
-    import re
     if any(not isinstance(run[k], str) or not re.fullmatch(r"[a-f0-9]{64}", run[k])
            for k in ("effective_base_fingerprint", "generation_config_sha256")):
         raise ProjectError("evaluation_pin", "Evaluation needs exact base and generation configuration hashes.")
@@ -66,8 +72,7 @@ def score_outputs(frozen: dict, run: dict, corpus: Corpus) -> dict:
     for item in run["records"]:
         if (not isinstance(item, dict) or set(item) != {"case_id", "proposal", "latency_ms", "review"}
                 or not isinstance(item["case_id"], str) or item["case_id"] in outputs
-                or type(item["latency_ms"]) not in (float, int) or not math.isfinite(item["latency_ms"])
-                or item["latency_ms"] < 0):
+                or not finite_nonnegative(item["latency_ms"])):
             raise ProjectError("evaluation_output", "Malformed or duplicate saved output.")
         outputs[item["case_id"]] = item
     cases = frozen["benchmark"]["cases"]
@@ -105,6 +110,16 @@ def score_outputs(frozen: dict, run: dict, corpus: Corpus) -> dict:
                      "abstained": schema_ok and proposal["status"] in {"unsupported", "needs_input"},
                      "reviewed": review is not None, "api_correct": bool(review and review["api_correct"] and schema_ok and evidence_ok),
                      "critical_violation": bool(review and review["critical_violation"]), "latency_ms": item["latency_ms"]})
+    metrics, group_scores = summarize_rows(rows)
+    return {"status": "scored_saved_outputs", **{k: run[k] for k in required - {"records"}},
+            "records_sha256": fingerprint(run["records"]), "metrics": metrics, "case_results": rows,
+            "group_scores": group_scores, "release_qualified": False,
+            "limitations": ["Review annotations are imported attestations; reviewer identity is not authenticated.",
+                            "No model or R code was executed by this scorer."]}
+
+
+def summarize_rows(rows):
+    """Derive reported metrics from the complete case-level results."""
     supported = [r for r in rows if r["supported"]]
     unsupported = [r for r in rows if not r["supported"]]
     abstentions = [r for r in rows if r["abstained"]]
@@ -121,14 +136,52 @@ def score_outputs(frozen: dict, run: dict, corpus: Corpus) -> dict:
                "review_coverage": sum(r["reviewed"] for r in rows) / len(rows),
                "critical_violations": sum(r["critical_violation"] for r in rows),
                "mean_latency_ms": sum(r["latency_ms"] for r in rows) / len(rows)}
-    return {"status": "scored_saved_outputs", **{k: run[k] for k in required - {"records"}},
-            "records_sha256": fingerprint(run["records"]), "metrics": metrics, "case_results": rows,
-            "group_scores": group_scores, "release_qualified": False,
-            "limitations": ["Review annotations are imported attestations; reviewer identity is not authenticated.",
-                            "No model or R code was executed by this scorer."]}
+    return metrics, group_scores
+
+
+def validate_report(report):
+    """Check imported score evidence; this does not authenticate its reviewer."""
+    if (not isinstance(report, dict) or report.get("status") != "scored_saved_outputs"
+            or report.get("release_qualified") is not False
+            or type(report.get("fixture_only")) is not bool
+            or not isinstance(report.get("run_id"), str) or not report["run_id"].strip()
+            or report.get("arm") not in ("A", "B", "C", "D")
+            or not isinstance(report.get("corpus_id"), str)
+            or not re.fullmatch(r"sha256:[a-f0-9]{64}", report["corpus_id"])
+            or any(not isinstance(report.get(k), str) or not re.fullmatch(r"[a-f0-9]{64}", report[k])
+                   for k in ("benchmark_sha256", "effective_base_fingerprint",
+                             "generation_config_sha256", "records_sha256"))):
+        raise ProjectError("comparison_report", "Comparison requires complete scored-output identities and provenance.")
+    rows = report.get("case_results")
+    if not isinstance(rows, list) or not 1 <= len(rows) <= 1000:
+        raise ProjectError("comparison_report", "Comparison requires bounded case-level results.")
+    boolean_fields = {"supported", "schema_valid", "evidence_valid", "success", "abstained",
+                      "reviewed", "api_correct", "critical_violation"}
+    fields = boolean_fields | {"case_id", "group_id", "latency_ms"}
+    seen = set()
+    for row in rows:
+        if (not isinstance(row, dict) or set(row) != fields
+                or any(type(row[k]) is not bool for k in boolean_fields)
+                or any(not isinstance(row[k], str) or not row[k] for k in ("case_id", "group_id"))
+                or row["case_id"] in seen or not finite_nonnegative(row["latency_ms"])):
+            raise ProjectError("comparison_report", "Malformed or duplicated comparison case.")
+        seen.add(row["case_id"])
+        if ((row["evidence_valid"] and not row["schema_valid"])
+                or (row["abstained"] and not row["schema_valid"])
+                or (row["api_correct"] and not (row["reviewed"] and row["schema_valid"] and row["evidence_valid"]))
+                or (row["critical_violation"] and not row["reviewed"])
+                or (row["success"] and (not row["api_correct"] or row["abstained"] or row["critical_violation"]))):
+            raise ProjectError("comparison_report", "Case outcomes contradict their validation or review state.")
+    metrics, groups = summarize_rows(rows)
+    if report.get("metrics") != metrics or report.get("group_scores") != groups:
+        raise ProjectError("comparison_report", "Summary metrics differ from the supplied case results; rescore saved outputs.")
+    return {row["case_id"]: (row["group_id"], row["supported"]) for row in rows}
 
 
 def compare_reports(baseline: dict, candidate: dict) -> dict:
+    left_cases, right_cases = validate_report(baseline), validate_report(candidate)
+    if left_cases != right_cases:
+        raise ProjectError("comparison_cases", "Comparison requires identical cases, support labels and paired groups.")
     for key in ("benchmark_sha256", "corpus_id", "effective_base_fingerprint", "generation_config_sha256"):
         if baseline.get(key) != candidate.get(key):
             raise ProjectError("unfair_comparison", "Comparison requires identical benchmark, evidence, base and generation budgets.")
@@ -150,4 +203,5 @@ def compare_reports(baseline: dict, candidate: dict) -> dict:
             "fixture_only": fixture, "review_complete": review_complete,
             "gain_supported": not fixture and review_complete and len(deltas) >= 20 and gain >= 0.05 and low > 0,
             "release_qualified": False, "regression_review": "pending",
-            "interpretation": "Fixture-only arithmetic" if fixture else "Paired observed comparison; complete scientific and regression review before promotion."}
+            "interpretation": "Fixture-only arithmetic" if fixture else "Paired observed comparison; complete scientific and regression review before promotion.",
+            "limitations": ["Imported case results and reviews are not authenticated; retain raw outputs and sealed benchmark evidence."]}

@@ -10,18 +10,36 @@ environment. Commands do not provision cloud resources.
 
 ## Local setup
 
+Use Python **3.14.4** for the qualification environment (`.python-version`). The
+package requires Python 3.11 or newer; macOS's system `python3` may be too old.
+Supported CPU hosts are Linux and macOS; the R sandbox and bounded PDF extractor
+require Linux (`bwrap`/`prlimit`). Those operations fail closed on macOS.
+
+With [uv](https://docs.astral.sh/uv/guides/install-python/) installed:
+
 ```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements-cpu.lock
-.venv/bin/python -m pip install --no-build-isolation --no-deps -e .
+uv python install 3.14.4
+uv venv --python 3.14.4 --seed .venv
+.venv/bin/python -m pip install --only-binary=:all: -r requirements-cpu.lock
+.venv/bin/python -m pip install --no-build-isolation --no-deps .
+.venv/bin/python -m pip check
 .venv/bin/python -m unittest discover -s tests -v
 .venv/bin/cttir-model preflight --config configs/cpu.json
 .venv/bin/cttir-model audit --config configs/cpu.json
 ```
 
+Alternatively create `.venv` using an existing Python 3.14.4 interpreter, then
+run the same pip commands. R client integration additionally requires `Rscript`
+with `curl` and `jsonlite`; missing optional prerequisites are reported as test
+skips. Install these explicitly with `Rscript -e 'install.packages(c("curl",
+"jsonlite"), repos="https://cloud.r-project.org")'` when testing the R client.
+
 Run `.venv/bin/python scripts/check_cpu.py` to retain local test evidence,
 preflight, a resumable implementation ledger and the full gate matrix under
 ignored `artifacts/`. The test suite runs serially and requires no network.
+After source changes, reinstall the package before recording evidence: the
+script rejects a stale installed copy. `audit` checks the package fingerprint
+and latest matching test result; missing or stale evidence stays pending.
 
 `preflight` only reads lightweight system metadata and writes ignored local
 evidence under `artifacts/`. It runs no workload benchmark. `audit` is read-only
@@ -52,6 +70,9 @@ These examples are **drafts, not reviewed training data**.
 Software is MIT licensed. Model, corpus, training-data and derived-weight
 licenses require their own recorded review. No upstream weights or manuals
 are included.
+
+See [the maintenance record](MAINTENANCE.md) for verified local readiness,
+remaining platform checks and release blockers.
 
 ## Use of LLM tools
 

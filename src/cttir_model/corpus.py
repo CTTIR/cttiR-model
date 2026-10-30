@@ -1,5 +1,6 @@
 """Small, immutable local evidence snapshots. No fetching or R execution."""
 
+import copy
 import hashlib
 import re
 from pathlib import Path
@@ -37,13 +38,30 @@ def approved(document: dict) -> bool:
 
 class Corpus:
     def __init__(self, value: dict, snapshot_id: str):
-        self.coverage = check_corpus(value)
+        value = copy.deepcopy(value)
+        self._coverage = check_corpus(value)
         actual = "sha256:" + fingerprint(value)
         if snapshot_id != actual:
             raise ProjectError("corpus_pin", "The configured corpus pin does not match snapshot content.")
-        self.snapshot_id = actual
-        self.fixture_only = value["fixture_only"]
-        self.documents = {d["evidence_id"]: d for d in value["documents"] if approved(d)}
+        self._snapshot_id = actual
+        self._fixture_only = value["fixture_only"]
+        self._documents = {d["evidence_id"]: d for d in value["documents"] if approved(d)}
+
+    @property
+    def snapshot_id(self):
+        return self._snapshot_id
+
+    @property
+    def fixture_only(self):
+        return self._fixture_only
+
+    @property
+    def coverage(self):
+        return copy.deepcopy(self._coverage)
+
+    @property
+    def documents(self):
+        return copy.deepcopy(self._documents)
 
     @classmethod
     def from_config(cls, config: Config) -> "Corpus":
@@ -58,20 +76,20 @@ class Corpus:
             raise ProjectError("package_pin", "Each package needs one unambiguous version and repository pin.")
         result = []
         for identity in ids:
-            document = self.documents.get(identity)
+            document = self._documents.get(identity)
             if document is None:
                 raise ProjectError("unknown_evidence", "Evidence is absent or not approved in the pinned snapshot.")
             if package_key(document["package"]) not in keys:
                 raise ProjectError("package_pin", "Evidence does not match the supplied package pins.")
             result.append(document)
-        return result
+        return copy.deepcopy(result)
 
     def search(self, query: str, pin: dict, limit: int = 5, max_chars: int = 16000) -> list[dict]:
         if len(query) > 20000 or not 1 <= limit <= 20 or not 1 <= max_chars <= 100000:
             raise ProjectError("search_budget", "Retrieval budget is out of bounds.")
         tokens = set(re.findall(r"[\w.]+", query.casefold()))
         ranked = []
-        for document in self.documents.values():
+        for document in self._documents.values():
             if package_key(document["package"]) != package_key(pin):
                 continue
             symbol = document["symbol"]
@@ -90,7 +108,7 @@ class Corpus:
             used += size
             if len(result) >= limit:
                 break
-        return result
+        return copy.deepcopy(result)
 
 
 def ingest(config: Config, source: Path) -> dict:

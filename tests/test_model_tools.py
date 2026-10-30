@@ -31,6 +31,18 @@ class ModelToolsTests(unittest.TestCase):
         with self.assertRaises(ProjectError):
             resolve_model('owner/model', 'b' * 40, fetch=lambda url: b'{"sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}')
 
+    def test_malformed_remote_metadata_is_a_typed_failure(self):
+        for siblings in ([{'rfilename': []}], [{'rfilename': 'config.json', 'lfs': 'invalid'}]):
+            raw = json.dumps({'sha': 'a' * 40, 'siblings': siblings}).encode()
+            with self.assertRaises(ProjectError):
+                resolve_model('owner/model', fetch=lambda url: raw)
+        for card, config in (({}, []), ('invalid', {})):
+            def fetch(url):
+                return json.dumps({'sha': 'a' * 40, 'siblings': [{'rfilename': 'config.json'}],
+                                   'cardData': card} if '/api/models/' in url else config).encode()
+            with self.assertRaises(ProjectError):
+                resolve_model('owner/model', fetch=fetch)
+
     def test_loss_mask_excludes_source_padding_and_does_not_truncate(self):
         self.assertEqual(assistant_labels([1, 2, 3, 4, 0], [0, 0, 1, 1, 0], [1, 1, 1, 1, 0], 8),
                          [-100, -100, 3, 4, -100])

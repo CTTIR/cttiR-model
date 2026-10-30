@@ -23,7 +23,7 @@ def library_manifest(root: Path) -> dict:
         if not isinstance(source, dict) or not isinstance(source.get("path"), str):
             raise ProjectError("book_manifest", "Malformed book source.")
         if (not isinstance(source.get("title"), str) or not source["title"].strip()
-                or source.get("rights_status") not in {"pending_review", "approved", "restricted", "rejected"}
+                or source.get("rights_status") not in ("pending_review", "approved", "restricted", "rejected")
                 or type(source.get("training_requested_by_user")) is not bool):
             raise ProjectError("book_manifest", "Book titles, rights states and requested-use markers must be explicit.")
         name = Path(source["path"])
@@ -31,7 +31,8 @@ def library_manifest(root: Path) -> dict:
         if (name.is_absolute() or len(name.parts) != 1 or path.is_symlink() or not path.is_file()
                 or not path.resolve().is_relative_to(root.resolve()) or path.suffix.lower() != ".pdf"):
             raise ProjectError("book_path", "Registered books must be ordinary local PDFs within the library.")
-        if source.get("source_id") in seen or source.get("source_id") != "book:" + str(source.get("sha256")):
+        if (not isinstance(source.get("source_id"), str) or source["source_id"] in seen
+                or source["source_id"] != "book:" + str(source.get("sha256"))):
             raise ProjectError("book_manifest", "Book identities must be unique SHA-256 source IDs.")
         if not re.fullmatch(r"[a-f0-9]{64}", str(source.get("sha256", ""))) or source.get("redistribution_allowed") is not False:
             raise ProjectError("book_manifest", "Books require source hashes and local-only distribution policy.")
@@ -102,10 +103,13 @@ def ingest_library(root: Path) -> dict:
         metadata_pin = fingerprint(source)
         if target.exists():
             existing = read_json(target, 32 * 1024 * 1024)
+            checked_chunks(existing, source["source_id"])
             if existing.get("source_manifest_sha256") == metadata_pin:
-                checked_chunks(existing, source["source_id"])
                 snapshot = root / "snapshots" / (fingerprint(existing) + ".json")
-                if not snapshot.exists():
+                if snapshot.exists():
+                    if read_json(snapshot, 32 * 1024 * 1024) != existing:
+                        raise ProjectError("book_index", "Retained book snapshot differs from its content hash.")
+                else:
                     atomic_json(snapshot, existing)
                 counts.append({"source_id": source["source_id"], "pages": source["pages"], "chunks": len(existing["chunks"]), "reused": True})
                 continue
@@ -126,7 +130,8 @@ def checked_chunks(index: dict, source_id: str) -> list[dict]:
     if fingerprint(chunks) != index.get("index_sha256"):
         raise ProjectError("book_index", "Book index content hash is stale.")
     for chunk in chunks:
-        if (chunk.get("source_id") != source_id or chunk.get("local_only") is not True
+        if (not isinstance(chunk, dict) or not isinstance(chunk.get("text"), str)
+                or chunk.get("source_id") != source_id or chunk.get("local_only") is not True
                 or chunk.get("api_verification") is not False
                 or chunk.get("chunk_id") != "book-chunk:" + fingerprint({k: v for k, v in chunk.items() if k != "chunk_id"})):
             raise ProjectError("book_index", "Book chunk provenance differs from its identity.")
@@ -142,7 +147,7 @@ def search_library(root: Path, query: str, limit: int = 5) -> dict:
     for source in manifest["sources"]:
         verify_book(root / source["path"], source)
         index = read_json(root / "index" / (source["sha256"] + ".json"), 32 * 1024 * 1024)
-        if index.get("source_manifest_sha256") != fingerprint(source):
+        if not isinstance(index, dict) or index.get("source_manifest_sha256") != fingerprint(source):
             raise ProjectError("book_index", "Book source metadata changed; rebuild the local index.")
         for chunk in checked_chunks(index, source["source_id"]):
             words = set(re.findall(r"\w+", chunk["text"].casefold()))
@@ -158,8 +163,9 @@ def training_plan(root: Path) -> dict:
     manifest = library_manifest(root)
     sources = []
     for source in manifest["sources"]:
+        verify_book(root / source["path"], source)
         index = read_json(root / "index" / (source["sha256"] + ".json"), 32 * 1024 * 1024)
-        if index.get("source_manifest_sha256") != fingerprint(source):
+        if not isinstance(index, dict) or index.get("source_manifest_sha256") != fingerprint(source):
             raise ProjectError("book_index", "Book metadata changed; rebuild before preparing a training plan.")
         chunks = checked_chunks(index, source["source_id"])
         sources.append({"source_id": source["source_id"], "source_sha256": source["sha256"],
@@ -167,7 +173,9 @@ def training_plan(root: Path) -> dict:
                         "chunks_available": len(chunks), "index_sha256": index["index_sha256"],
                         "grouping_lineage": source["source_id"], "rights_status": source["rights_status"],
                         "content_status": source.get("completeness", "unreviewed"),
-                        "training_use": "awaiting_body_chapters" if source.get("completeness") == "front_matter_only" else "reviewed_tasks_requested"})
+                        "training_requested_by_user": source["training_requested_by_user"],
+                        "training_use": "not_requested" if not source["training_requested_by_user"] else
+                        "awaiting_body_chapters" if source.get("completeness") == "front_matter_only" else "reviewed_tasks_requested"})
     result = {"schema_version": 1, "status": "preparation_only", "local_only": True,
               "sources": sources, "training_examples_created": 0, "training_ready": False,
               "requirements": ["Retain source hash, chunk ID and PDF page in each task's source-review manifest.",

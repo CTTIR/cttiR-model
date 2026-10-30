@@ -4,11 +4,18 @@ cttir_model_error <- function(code, message) {
                  class = c(paste0("cttir_model_", code), "cttir_model_error", "error", "condition")))
 }
 
+cttir_model_text <- function(value) {
+  is.character(value) && length(value) == 1L && is.null(dim(value)) &&
+    !is.na(value) && nzchar(value)
+}
+
 cttir_model_http <- function(path, endpoint, timeout, body = NULL, method = "GET") {
-  if (!is.character(endpoint) || length(endpoint) != 1L ||
+  if (!cttir_model_text(endpoint) ||
       !grepl("^http://127[.]0[.]0[.]1:[0-9]{1,5}$", endpoint)) {
     cttir_model_error("endpoint", "Use a literal loopback endpoint without credentials or a path.")
   }
+  port <- as.integer(sub("^.*:", "", endpoint))
+  if (port < 1L || port > 65535L) cttir_model_error("endpoint", "Loopback port must be between 1 and 65535.")
   if (!is.numeric(timeout) || length(timeout) != 1L || !is.finite(timeout) || timeout < 1 || timeout > 60) {
     cttir_model_error("timeout", "timeout must be between 1 and 60 seconds.")
   }
@@ -52,15 +59,22 @@ cttir_model_health <- function(endpoint = "http://127.0.0.1:8088", timeout = 5) 
 
 cttir_model_consult <- function(task, context, endpoint = "http://127.0.0.1:8088", timeout = 30) {
   tasks <- c("select_workflow", "propose_r_code", "explain_api", "review_r_code")
-  if (!is.character(task) || length(task) != 1L || !task %in% tasks || !is.list(context)) {
+  if (!cttir_model_text(task) || !task %in% tasks || !is.list(context)) {
     cttir_model_error("request", "Supply a supported task and structured context list.")
   }
   required <- c("request_id", "language", "instruction", "corpus_id", "package_pins", "evidence_ids", "input_contract")
-  if (!setequal(names(context), required)) cttir_model_error("request", "Context must contain exactly the protocol-v1 fields.")
+  if (length(context) != length(required) || !setequal(names(context), required)) {
+    cttir_model_error("request", "Context must contain exactly the protocol-v1 fields.")
+  }
   for (name in c("request_id", "language", "instruction", "corpus_id")) {
-    if (!is.character(context[[name]]) || length(context[[name]]) != 1L || !nzchar(context[[name]])) {
+    if (!cttir_model_text(context[[name]])) {
       cttir_model_error("request", "Request text fields must be nonempty scalar strings.")
     }
+  }
+  fields <- c("columns", "object_classes", "experimental_unit")
+  if (!is.list(context$input_contract) || length(context$input_contract) != length(fields) ||
+      !setequal(names(context$input_contract), fields)) {
+    cttir_model_error("request", "input_contract must contain columns, object_classes and experimental_unit.")
   }
   context$evidence_ids <- as.list(context$evidence_ids)
   context$package_pins <- as.list(context$package_pins)
@@ -74,27 +88,31 @@ cttir_model_consult <- function(task, context, endpoint = "http://127.0.0.1:8088
                         "assumptions", "missing_inputs", "limitations")
   if (!is.list(proposal) || !identical(proposal$protocol_version, 1L) ||
       !identical(proposal$request_id, context$request_id) ||
-      !setequal(names(proposal), proposal_fields) || !is.character(proposal$status) || length(proposal$status) != 1L ||
+      length(proposal) != length(proposal_fields) || !setequal(names(proposal), proposal_fields) ||
+      !cttir_model_text(proposal$status) ||
       !proposal$status %in% c("proposed", "needs_input", "unsupported", "failed") ||
-      !is.character(proposal$summary) || length(proposal$summary) != 1L || !nzchar(proposal$summary) ||
+      !cttir_model_text(proposal$summary) ||
       !is.null(proposal$r_code) || !is.list(value$verification) ||
+      !isTRUE(value$verification$schema_valid) || !isTRUE(value$verification$evidence_pins_valid) ||
       !isFALSE(value$verification$r_execution_authorized) || !identical(value$corpus_id, context$corpus_id)) {
     cttir_model_error("protocol", "Unvalidated or incompatible service response.")
   }
   for (name in c("evidence_ids", "assumptions", "missing_inputs", "limitations")) {
     items <- proposal[[name]]
-    if (!is.list(items) || !all(vapply(items, function(x) is.character(x) && length(x) == 1L && nzchar(x), logical(1)))) {
+    if (!is.list(items) || !is.null(names(items)) || !all(vapply(items, cttir_model_text, logical(1)))) {
       cttir_model_error("protocol", "Proposal array fields are invalid.")
     }
   }
-  if (!all(unlist(proposal$evidence_ids) %in% unlist(context$evidence_ids))) {
+  if (anyDuplicated(proposal$evidence_ids) ||
+      (proposal$status == "proposed" && !length(proposal$evidence_ids)) ||
+      !all(unlist(proposal$evidence_ids) %in% unlist(context$evidence_ids))) {
     cttir_model_error("protocol", "Response cited evidence outside the request.")
   }
   value
 }
 
 cttir_model_cancel <- function(request_id, endpoint = "http://127.0.0.1:8088", timeout = 5) {
-  if (!is.character(request_id) || length(request_id) != 1L || !nzchar(request_id)) {
+  if (!cttir_model_text(request_id)) {
     cttir_model_error("request", "request_id must be a nonempty string.")
   }
   cttir_model_http(paste0("/v1/requests/", utils::URLencode(request_id, reserved = TRUE)),

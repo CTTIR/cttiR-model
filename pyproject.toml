@@ -1,13 +1,15 @@
 [build-system]
-requires = ["setuptools==78.1.1"]
+requires = ["setuptools==84.1.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "cttir-model"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local contracts, corpus and provenance tooling for the CTTIR model project"
+readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 dependencies = ["jsonschema==4.19.2"]
 
 [project.scripts]

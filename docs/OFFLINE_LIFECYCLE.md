@@ -55,6 +55,11 @@ success, abstention precision/recall, review coverage, critical violations and
 latency. Universal refusal earns zero supported-task success. Every case must
 appear exactly once, including failures. Comparison with `--baseline REPORT.json`
 requires identical corpus, effective base, benchmark and generation settings.
+It requires complete scored reports, recomputes summary metrics from case
+results, and rejects missing identities, duplicate cases, inconsistent review
+outcomes or different case/group/support assignments. Case results remain
+imported attestations: retain original outputs and sealed benchmark evidence;
+structural consistency is not proof of an independently performed experiment.
 It uses 200 deterministic paired group bootstrap resamples, requires at least
 20 groups for statistical gain support, and still leaves regression review and
 release qualification pending. Small/fixture benchmarks never establish a model

@@ -132,6 +132,18 @@ class HTTPTests(unittest.TestCase):
         status, _ = self.call("POST", "/v1/consult", "x" * 65537)
         self.assertEqual(status, 413)
 
+    def test_duplicate_host_and_empty_origin_or_encoding_are_rejected(self):
+        for headers in ((('Host', '127.0.0.1'),), (('Origin', ''),), (('Transfer-Encoding', ''),)):
+            conn = http.client.HTTPConnection('127.0.0.1', self.server.server_port, timeout=3)
+            conn.putrequest('GET', '/health')
+            for key, value in headers:
+                conn.putheader(key, value)
+            conn.endheaders()
+            response = conn.getresponse()
+            self.assertEqual(response.status, 400)
+            self.assertEqual(json.loads(response.read())['status'], 'failed')
+            conn.close()
+
     def test_r_client_against_live_fixture_service(self):
         import shutil
         if not shutil.which("Rscript"):
@@ -144,5 +156,14 @@ class HTTPTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         result = subprocess.run(["Rscript", "--vanilla", str(root / "tests/r/client.R"),
                                  f"http://127.0.0.1:{self.server.server_port}", self.c.snapshot_id],
+                                capture_output=True, text=True, timeout=15, cwd=root)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_r_client_rejects_malformed_context_and_unverified_responses(self):
+        import shutil
+        if not shutil.which("Rscript"):
+            self.skipTest("Rscript not installed; run R integration tier separately")
+        root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(["Rscript", "--vanilla", str(root / "tests/r/client-validation.R")],
                                 capture_output=True, text=True, timeout=15, cwd=root)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

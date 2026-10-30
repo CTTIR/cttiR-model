@@ -85,7 +85,7 @@ def pending_gates() -> list[dict]:
     reasons = [
         "Run preflight to record local inventory.",
         "CPU contracts require recorded test evidence.",
-        "Model revisions resolved; effective-base compatibility and real GPU smoke deferred.",
+        "Inspect pinned model metadata; effective-base compatibility and real GPU smoke deferred.",
         "Production corpus and approved coverage not supplied.",
         "Reviewed dataset and frozen splits not supplied.",
         "Real same-base baseline deferred.",
@@ -93,8 +93,8 @@ def pending_gates() -> list[dict]:
         "Held-out domain evaluation deferred.",
         "Execution/privacy evaluation on actual model pending.",
         "Baseline/candidate comparison deferred.",
-        "Fixture broker passes; real model endpoint orchestration deferred.",
-        "R client and local pointer rollback tested; actual model load/restart deferred.",
+        "Fixture broker available; actual model endpoint orchestration deferred.",
+        "R client and local pointer rollback available; actual model load/restart deferred.",
         "No trained, reconstructible release candidate.",
         "Model publication remains a later explicit action.",
     ]

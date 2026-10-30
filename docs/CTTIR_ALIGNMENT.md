@@ -1,5 +1,11 @@
 # Alignment with cttiR
 
+This is a **historical compatibility contract**, not a description of the
+current cttiR package. The 2026-10-30 public audit observed cttiR 0.1.1.9000 with
+implemented reflowR workflows. This adapter still accepts only the older exact
+commit below; its pins and schema must not be replaced without migration tests.
+All references to parent behavior below refer to that inspected revision.
+
 Inspected 2026-09-27: public package **cttiR 0.0.2**, commit
 [`03ecc04bd86e3b6f03d3df2a5c42ab1265628f58`](https://github.com/CTTIR/cttiR/tree/03ecc04bd86e3b6f03d3df2a5c42ab1265628f58).
 All configured remotes were fetched with pruning; the clean `main` checkout was
@@ -187,5 +193,6 @@ The adapter neither validates scientific appropriateness nor grants new approval
 `fallback_plan()` only describes supported offline scaffolding, or reports an
 unsupported selection; it does not create a project or start reflowR. A missing
 approved corpus can use this plan without constructing an inference request.
-The default snapshot path is relative to the source checkout; callers outside a
-checkout must supply a deployed, trusted `manifest_path` explicitly.
+The default snapshot is packaged at `cttir_model/schemas/cttir-parent.json` and
+works outside a source checkout. An explicit `manifest_path` overrides that
+trusted snapshot and must come from a reviewed compatibility inspection.

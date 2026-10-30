@@ -4,6 +4,7 @@ from .corpus import Corpus
 from .errors import ProjectError
 from .parent import parent_manifest
 from .provenance import fingerprint, read_json
+from .verification import installed_fingerprint
 
 
 def audit(config, gates):
@@ -13,7 +14,7 @@ def audit(config, gates):
         report = read_json(preflight_path)
         if isinstance(report, dict) and report.get("config_sha256") == fingerprint(config.values):
             gates[0] = {"gate": "G01", "status": "pass", "reason": "Local CPU preflight matches current config; no GPU work authorized."}
-    gates[1]["reason"] = "CPU tools have local test evidence; real training/inference backend readiness remains pending."
+    gates[1]["reason"] = "No matching successful CPU test evidence has been verified; model readiness remains pending."
     if config.values["corpus"]["path"]:
         try:
             corpus = Corpus.from_config(config)
@@ -30,25 +31,50 @@ def audit(config, gates):
                    "version": parent["version"], "manifest_sha256": fingerprint(parent),
                    "reason": "Pinned inspection snapshot only; no live parent refresh was performed."})
     ledger_path = config.artifacts / "implementation/ledger.json"
+    cpu_evidence = {"check": "cpu_test_evidence", "status": "pending",
+                    "reason": "Run scripts/check_cpu.py against the installed current checkout."}
     if ledger_path.exists():
         try:
             ledger = read_json(ledger_path)
             if not isinstance(ledger, dict) or not isinstance(ledger.get("entries"), list):
                 raise ProjectError("ledger_shape", "Invalid ledger.")
+            identities = set()
+            matching = []
+            installed_sha256 = installed_fingerprint()
             for item in ledger["entries"]:
                 if not isinstance(item, dict) or not isinstance(item.get("sha256"), str):
                     raise ProjectError("ledger_shape", "Invalid ledger entry.")
                 identity = item["sha256"]
+                if identity in identities:
+                    raise ProjectError("ledger_shape", "Duplicate ledger entry.")
+                identities.add(identity)
                 if len(identity) != 64 or any(c not in "0123456789abcdef" for c in identity):
                     raise ProjectError("ledger_hash", "Invalid ledger hash.")
                 entry = read_json(ledger_path.parent / (identity + ".json"))
                 if fingerprint(entry) != identity or entry != {k: v for k, v in item.items() if k != "sha256"}:
                     raise ProjectError("ledger_hash", "Historical evidence changed.")
+                if (entry.get("phase") == "cpu_tests"
+                        and entry.get("installed_package_sha256") == installed_sha256):
+                    if not isinstance(entry.get("timestamp"), str) or not entry["timestamp"]:
+                        raise ProjectError("ledger_shape", "Test evidence needs a recorded timestamp.")
+                    matching.append(entry)
+            stored = {p.stem for p in ledger_path.parent.glob("*.json")
+                      if len(p.stem) == 64 and all(c in "0123456789abcdef" for c in p.stem)}
+            if stored != identities:
+                raise ProjectError("ledger_incomplete", "Ledger index does not cover all retained phase evidence.")
+            if matching:
+                latest = max(matching, key=lambda entry: entry.get("timestamp", ""))
+                passed = type(latest.get("exit_status")) is int and latest["exit_status"] == 0
+                cpu_evidence.update(status="pass" if passed else "fail",
+                                    reason="Recorded suite for installed package; inspect its output for platform skips.",
+                                    evidence_sha256=fingerprint(latest))
+                gates[1]["reason"] = "Matching CPU test evidence recorded; actual model readiness remains pending." if passed else "Latest matching CPU suite failed."
             checks.append({"check": "ledger_integrity", "status": "pass", "entries": len(ledger["entries"])})
         except ProjectError as exc:
             checks.append({"check": "ledger_integrity", "status": "fail", "reason": exc.code})
     else:
         checks.append({"check": "ledger_integrity", "status": "pending", "reason": "Run preflight/CPU checks to create evidence."})
+    checks.append(cpu_evidence)
     return {"status": "fail" if any(c["status"] == "fail" for c in checks) else "pending",
             "checks": checks, "gates": gates, "trained_candidate": False,
             "release_qualified": False, "mutations": False}

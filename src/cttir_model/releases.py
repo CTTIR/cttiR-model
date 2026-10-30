@@ -69,20 +69,29 @@ def validate_release(manifest: dict, root: Path, byte_limit: int = 64 * 1024 * 1
     gate_rows = gates.get("gates", []) if isinstance(gates, dict) else []
     if not isinstance(gate_rows, list) or any(not isinstance(row, dict) for row in gate_rows):
         raise ProjectError("release_gates", "Malformed release gates.")
+    if any(not isinstance(row.get("gate"), str) for row in gate_rows):
+        raise ProjectError("release_gates", "Release gate identities must be strings.")
     by_id = {row.get("gate"): row for row in gate_rows}
     if len(by_id) != len(gate_rows):
         raise ProjectError("release_gates", "Duplicate release gates.")
     for number in range(1, 14):
         row = by_id.get(f"G{number:02}", {})
         if (row.get("status") != "pass" or type(row.get("exit_status")) is not int or row["exit_status"] != 0
-                or not row.get("command") or not row.get("artifacts")
-                or not isinstance(row["artifacts"], list) or not set(row["artifacts"]).issubset(names)):
+                or not isinstance(row.get("command"), str) or not row["command"].strip()
+                or not row.get("artifacts") or not isinstance(row["artifacts"], list)
+                or any(not isinstance(name, str) for name in row["artifacts"])
+                or not set(row["artifacts"]).issubset(names)):
             raise ProjectError("release_gates", "All mandatory pre-publication gates need successful, referenced evidence.")
     base = read_json(root / "base-provenance.json")
     adapter = read_json(root / "adapter_config.json")
     evaluation = read_json(root / "evaluation.json")
     if not all(isinstance(value, dict) for value in (base, adapter, evaluation)):
         raise ProjectError("release_provenance", "Release provenance files must be objects.")
+    modules = adapter.get("target_modules")
+    if (not isinstance(modules, list) or not modules
+            or any(not isinstance(name, str) or not name.strip() for name in modules)
+            or len(set(modules)) != len(modules)):
+        raise ProjectError("release_provenance", "Adapter target modules must be an explicit unique list of names.")
     recipe_keys = {"source_repo_id", "source_revision", "config_sha256", "tokenizer_sha256", "template_sha256", "conversion_sha256"}
     if (not recipe_keys.issubset(base) or any(not isinstance(base[k], str) or not re.fullmatch(r"[a-f0-9]{64}", base[k])
                                            for k in recipe_keys if k.endswith("sha256"))
@@ -111,6 +120,7 @@ def prepare_release(config, run_id: str) -> dict:
     if source.is_symlink() or not source.resolve().is_relative_to((config.artifacts / "runs").resolve()):
         raise ProjectError("run_id", "Run folder must be inside the local run store.")
     manifest = read_json(source / "release.json")
+    validate(manifest, "release")
     if not config.values["project"]["hf_repo"] or manifest.get("hf_repo") != config.values["project"]["hf_repo"]:
         raise ProjectError("release_target", "Configure the exact reviewed Hugging Face target before preparing a payload.")
     if manifest.get("visibility") != config.values["release"]["visibility"]:
@@ -162,6 +172,14 @@ class ReleaseRegistry:
     def switch(self, manifest_path: Path | None = None, rollback: bool = False, dry_run: bool = True) -> dict:
         def plan():
             previous = read_json(self.state / "active.json") if (self.state / "active.json").exists() else None
+            if previous is not None:
+                fields = {"manifest", "sha256", "release_id", "effective_base_fingerprint", "corpus_id", "source_commit"}
+                if (not isinstance(previous, dict) or set(previous) != {"current", "previous"}
+                        or any(not isinstance(pointer, dict) or set(pointer) != fields
+                               or any(not isinstance(v, str) or not v for v in pointer.values())
+                               for pointer in [previous["current"]] +
+                               ([previous["previous"]] if previous["previous"] is not None else []))):
+                    raise ProjectError("registry_state", "Stored routing metadata is malformed; preserve it for recovery review.")
             if rollback:
                 if not previous or not previous.get("previous"):
                     raise ProjectError("rollback_unavailable", "No prior coherent release pointer is retained.")

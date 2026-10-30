@@ -73,9 +73,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def boundary(self):
         host = f"127.0.0.1:{self.server.server_port}"
-        if self.headers.get("Host") != host or self.headers.get("Origin"):
+        if self.headers.get_all("Host", []) != [host] or self.headers.get_all("Origin"):
             raise ProjectError("origin_policy", "Only direct loopback clients are accepted.")
-        if self.headers.get("Transfer-Encoding"):
+        if self.headers.get_all("Transfer-Encoding"):
             raise ProjectError("request_encoding", "Chunked request bodies are not supported.")
 
     def handle_operation(self, operation):

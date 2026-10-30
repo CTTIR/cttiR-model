@@ -1,8 +1,9 @@
 # Local evidence and dataset interfaces
 
-This milestone implements a small normalized JSON corpus adapter. It does not
-yet extract Rd files, vignettes or S3/S4/S7 metadata from R packages, import the
-parent resource database, or establish real source rights. G04 remains pending.
+This milestone implements a small normalized JSON corpus adapter. Bounded Rd
+candidate extraction is available through the [Linux sandbox](R_VALIDATION.md).
+It does not import vignettes, S3/S4/S7 metadata or the parent resource database,
+or establish real source rights. G04 remains pending.
 The size limit is 2 MiB by default, with at most 1,000 documents or data records.
 No indexing command fetches source URLs or executes documentation.
 
@@ -36,11 +37,15 @@ symbols have priority over lexical term matches. It returns complete documents
 within a character budget; oversized documents are omitted, not truncated.
 Production ingestion will need section-level chunks to avoid omission of long
 topics. Source timestamps should be recorded separately from immutable content.
+The in-memory corpus owns copies of validated documents; mutating constructor
+inputs or retrieved results cannot change evidence behind an existing pin.
 
 `protocol.validate_request` binds evidence to server-owned records and rejects
 wrong corpus/package pins. `validate_proposal` checks request identity, evidence
-subsets and schema; it rejects executable code until a deterministic R validator
-exists. These are library functions, not a deployed broker or inference service.
+subsets and schema. It rejects executable code: the isolated parser is a
+separate inspection tool and does not authorize broker execution. The
+[loopback development broker](LOCAL_SERVICE.md) uses these validators; no
+inference runtime is implemented.
 
 ## Dataset checks
 
