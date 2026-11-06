@@ -1,6 +1,7 @@
 """Loopback development service with bounded admission and no inference runtime."""
 
 import json
+import socketserver
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote
@@ -28,6 +29,14 @@ class LocalServer(ThreadingHTTPServer):
         self.broker = broker
         self.slots = threading.BoundedSemaphore(4)
         super().__init__(address, Handler)
+
+    def server_bind(self):
+        # HTTPServer.server_bind resolves the bound address with socket.getfqdn(), a reverse
+        # DNS lookup that can take ~30 s on some hosts (GitHub macOS runners). The service binds
+        # only to the literal loopback address, so its name is that address.
+        socketserver.TCPServer.server_bind(self)
+        host, port = self.server_address[:2]
+        self.server_name, self.server_port = host, port
 
     def process_request(self, request, client_address):
         if not self.slots.acquire(blocking=False):
